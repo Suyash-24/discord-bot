@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TOKEN = os.getenv("BOT_TOKEN")
+
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -18,4 +18,4 @@ async def on_ready():
 async def ping(ctx):
     await ctx.send("Pong!")
 
-bot.run(TOKEN)
+bot.run("BOT_TOKEN")

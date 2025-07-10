@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import discord
 
-load_dotenv()  # Loads from .env file locally
+  # Loads from .env file locally
 
 TOKEN = os.getenv("BOT_TOKEN")  # Grabs token from env var
 

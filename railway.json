@@ -1,3 +1,5 @@
 {
-  "start": "your start command"
+  "build": {
+    "start": "python bot.py"
+  }
 }

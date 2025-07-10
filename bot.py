@@ -2,7 +2,7 @@ import discord
 import os
 
 # Use your actual bot token directly here (for testing only)
-TOKEN = "MTM5MjQ1NTQ2NTU5MzQ3MTAxNw.GrYOPT.67p4SLkWrqvrd5-00gDM7KgivUYjeEEpbr4TRI"  # Replace this!
+TOKEN = "MTM5MjQ1NTQ2NTU5MzQ3MTAxNw.GTxKTy.3-uyptW6_bEnL7UfZEQiA0iJd9NzWw_WOWFUq0"  # Replace this!
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)

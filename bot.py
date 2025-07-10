@@ -1,21 +1,22 @@
-import os
 import discord
-from discord.ext import commands
-from dotenv import load_dotenv
+import os
 
-load_dotenv()
-
-
+# Use your actual bot token directly here (for testing only)
+TOKEN = "MTM5MjQ1NTQ2NTU5MzQ3MTAxNw.GrYOPT.67p4SLkWrqvrd5-00gDM7KgivUYjeEEpbr4TRI"  # Replace this!
 
 intents = discord.Intents.default()
-bot = commands.Bot(command_prefix="!", intents=intents)
+client = discord.Client(intents=intents)
 
-@bot.event
+@client.event
 async def on_ready():
-    print(f"Logged in as {bot.user}")
+    print(f'Logged in as {client.user}')
 
-@bot.command()
-async def ping(ctx):
-    await ctx.send("Pong!")
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
 
-bot.run("BOT_TOKEN")
+    if message.content == "ping":
+        await message.channel.send("pong")
+
+client.run(TOKEN)

@@ -1,22 +1,29 @@
 import discord
-
-
+from discord.ext import commands
+from discord import app_commands
 
 TOKEN = "MTM5MjQ1NTQ2NTU5MzQ3MTAxNw.GTxKTy.3-uyptW6_bEnL7UfZEQiA0iJd9NzWw_WOWFUq0"
 
 intents = discord.Intents.default()
-client = discord.Client(intents=intents)
+intents.message_content = True
 
-@client.event
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+@bot.event
 async def on_ready():
-    print(f"Bot is ready and logged in as {client.user}")
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} slash command(s).")
+    except Exception as e:
+        print(f"Slash command sync failed: {e}")
+    print(f"Bot is online as {bot.user}")
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
+@bot.command()
+async def ping(ctx):
+    await ctx.send("🏓 Pong! (from !ping)")
 
-    if message.content.lower() == "ping":
-        await message.channel.send("pong")
+@bot.tree.command(name="ping", description="Replies with Pong!")
+async def slash_ping(interaction: discord.Interaction):
+    await interaction.response.send_message("🏓 Pong! (from /ping)")
 
-client.run(TOKEN)
+bot.run(TOKEN)

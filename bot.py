@@ -47,10 +47,19 @@ async def on_ready():
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def setprefix(ctx, new_prefix):
-    prefix_db[str(ctx.guild.id)] = new_prefix
-    with open("prefixes.json", "w") as f:
-        json.dump(prefix_db, f, indent=2)
-    await ctx.send(f"✅ Prefix changed to `{new_prefix}`")
+    guild_id = str(ctx.guild.id)
+    prefix_db[guild_id] = new_prefix
+    print(f"[DEBUG] Setting prefix for {guild_id} to {new_prefix}")
+    
+    try:
+        with open("prefixes.json", "w") as f:
+            json.dump(prefix_db, f, indent=2)
+        await ctx.send(f"✅ Prefix changed to `{new_prefix}`")
+        print("[DEBUG] prefixes.json updated successfully.")
+    except Exception as e:
+        print(f"[ERROR] Failed to write prefixes.json: {e}")
+        await ctx.send("❌ Failed to update prefix file.")
+
 
 @bot.command()
 async def ping(ctx):
@@ -81,6 +90,10 @@ async def no_prefix(ctx, action: str = None, member: discord.Member = None):
             return await ctx.send(f"❌ {member.mention} is not in no prefix list.")
         NO_PREFIX_USERS.remove(member.id)
         await ctx.send(f"✅ removed no prefix from {member.mention}")
+
+# DEBUG FORCE WRITE
+with open("prefixes.json", "w") as f:
+    json.dump({"test": "value"}, f)
 
 bot.run(TOKEN)
 

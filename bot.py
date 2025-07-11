@@ -15,10 +15,16 @@ else:
 NO_PREFIX_USERS = [1105502119731150858]  # Replace with actual user IDs
 
 def get_prefix(bot, message):
-    guild_id = str(message.guild.id) if message.guild else None
+    
+    if not message.guild:
+        return commands.when_mentioned_or(DEFAULT_PREFIX)(bot, message)
+
+    
     if message.author.id in NO_PREFIX_USERS:
-        return commands.when_mentioned_or("", DEFAULT_PREFIX)(bot, message)
-    return commands.when_mentioned_or(prefix_db.get(guild_id, DEFAULT_PREFIX))(bot, message)
+        return commands.when_mentioned_or("", prefix_db.get(str(message.guild.id), DEFAULT_PREFIX))(bot, message)
+
+    return commands.when_mentioned_or(prefix_db.get(str(message.guild.id), DEFAULT_PREFIX))(bot, message)
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -41,6 +47,12 @@ async def ping(ctx):
     latency = round(bot.latency * 1000)  
     await ctx.send(f"🏓 Pong! Latency: `{latency}ms`")
 
+@bot.tree.command(name="ping", description="Check bot latency")
+async def slash_ping(interaction: discord.Interaction):
+    latency = round(bot.latency * 1000)
+    await interaction.response.send_message(f"Pong! Latency: `{latency}ms`")
+
+
 @bot.command(name="no_prefix")
 async def no_prefix(ctx, action: str = None, member: discord.Member = None):
     if ctx.author.id != 1105502119731150858:
@@ -60,6 +72,15 @@ async def no_prefix(ctx, action: str = None, member: discord.Member = None):
             return await ctx.send(f"❌ {member.mention} is not in no prefix list.")
         NO_PREFIX_USERS.remove(member.id)
         await ctx.send(f"✅ removed no prefix from {member.mention}")
+
+@bot.event
+async def on_ready():
+    try:
+        synced = await bot.tree.sync()
+        print(f"✅ Synced {len(synced)} slash command(s).")
+    except Exception as e:
+        print(f"❌ Slash command sync failed: {e}")
+    print(f"🤖 Bot is online as {bot.user}")
 
 
 bot.run(TOKEN)

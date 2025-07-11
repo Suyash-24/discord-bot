@@ -19,12 +19,17 @@ def get_prefix(bot, message):
         return DEFAULT_PREFIX
 
     guild_id = str(message.guild.id)
-    custom_prefix = prefix_db.get(guild_id, DEFAULT_PREFIX)
+    custom_prefix = prefix_db.setdefault(guild_id, DEFAULT_PREFIX)
+
+    # Save it back so it stays persistent
+    with open("prefixes.json", "w") as f:
+        json.dump(prefix_db, f, indent=2)
 
     if message.author.id in NO_PREFIX_USERS:
         return commands.when_mentioned_or("", custom_prefix)(bot, message)
 
     return commands.when_mentioned_or(custom_prefix)(bot, message)
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -45,7 +50,7 @@ async def setprefix(ctx, new_prefix):
     prefix_db[str(ctx.guild.id)] = new_prefix
     with open("prefixes.json", "w") as f:
         json.dump(prefix_db, f, indent=2)
-    await ctx.send(f"Prefix changed to `{new_prefix}`")
+    await ctx.send(f"✅ Prefix changed to `{new_prefix}`")
 
 @bot.command()
 async def ping(ctx):

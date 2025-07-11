@@ -48,7 +48,7 @@ async def ping(ctx):
     latency = round(bot.latency * 1000)  
     await ctx.send(f"🏓 Pong! Latency: `{latency}ms`")
 
-@bot.tree.command(name="ping", description="Check bot latency")
+@bot.tree.command(name="bot_ping", description="Check bot latency")
 async def slash_ping(interaction: discord.Interaction):
     latency = round(bot.latency * 1000)
     await interaction.response.send_message(f"Pong! Latency: `{latency}ms`")

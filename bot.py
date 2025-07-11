@@ -38,7 +38,8 @@ async def setprefix(ctx, new_prefix):
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send("pong")
+    latency = round(bot.latency * 1000)  
+    await ctx.send(f"🏓 Pong! Latency: `{latency}ms`")
 
 @bot.command(name="no_prefix")
 async def no_prefix(ctx, action: str = None, member: discord.Member = None):
@@ -50,15 +51,15 @@ async def no_prefix(ctx, action: str = None, member: discord.Member = None):
 
     if action == "add":
         if member.id in NO_PREFIX_USERS:
-            return await ctx.send(f"{member.mention} is already in no-prefix list.")
+            return await ctx.send(f"❌ {member.mention} already has no prefix.")
         NO_PREFIX_USERS.append(member.id)
-        await ctx.send(f"✅ {member.mention} added to no-prefix list.")
+        await ctx.send(f"✅ added no prefix to {member.mention}")
 
     elif action == "remove":
         if member.id not in NO_PREFIX_USERS:
-            return await ctx.send(f"{member.mention} is not in no-prefix list.")
+            return await ctx.send(f"❌ {member.mention} is not in no prefix list.")
         NO_PREFIX_USERS.remove(member.id)
-        await ctx.send(f"❌ {member.mention} removed from no-prefix list.")
+        await ctx.send(f"✅ removed no prefix from {member.mention}")
 
 
 bot.run(TOKEN)

@@ -51,32 +51,65 @@ intents.members = True
 
 bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None)
 
-# Custom help command with server banner and icon
+# Custom help command styled like the example
 @bot.command(name="help")
 async def custom_help(ctx):
     guild = ctx.guild
+    user = ctx.author
+    icon_url = guild.icon.url if guild.icon else None
+    banner_url = guild.banner.url if guild.banner else None
+
     embed = discord.Embed(
-        title=f"Help for {guild.name}",
-        description="Here are the available commands:",
+        description=(
+            f"Hey! {user.mention},\n"
+            f"It's **{guild.name}** here, your all-in-one server management & security partner.\n"
+            f"Use `help` to unlock **unique features**."
+        ),
         color=discord.Color.blurple()
     )
 
-    # Add server icon as thumbnail
-    if guild.icon:
-        embed.set_thumbnail(url=guild.icon.url)
+    # Set author with server icon (top right corner)
+    embed.set_author(name=user.display_name, icon_url=icon_url)
 
     # Add server banner as image if available
-    if guild.banner:
-        embed.set_image(url=guild.banner.url)
+    if banner_url:
+        embed.set_image(url=banner_url)
 
-    # List commands
-    for command in bot.commands:
-        if not command.hidden:
-            embed.add_field(
-                name=f"{command.qualified_name}",
-                value=command.help or "No description.",
-                inline=False
-            )
+    # Modules section (customize as needed)
+    modules = [
+        ("🔴 General", ""),
+        ("🛠️ Moderation", ""),
+        ("🤖 Automod", ""),
+        ("✨ Extra", ""),
+        ("🛡️ Security", ""),
+        ("🎫 Ticket", ""),
+        ("⭐ Starboard", ""),
+        ("⚙️ Automation", ""),
+        ("🚫 Ignore", ""),
+        ("🎭 Reactionrole", ""),
+        ("🖼️ Media", ""),
+        ("🎉 Giveaway", ""),
+        ("🔊 Voice Moderation", ""),
+        ("🧩 Customrole", ""),
+        ("🚀 Booster", ""),
+        ("👋 Welcomer", ""),
+        ("🛠️ Utility", ""),
+        ("🎲 Fun", "")
+    ]
+
+    module_list = "\n".join([f"{emoji} {name}" for (emoji, name) in [(m.split(' ',1)[0], m.split(' ',1)[1]) if ' ' in m else (m, '') for m, _ in modules]])
+    embed.add_field(
+        name="📂 **Modules**",
+        value=module_list,
+        inline=False
+    )
+
+    # Premium section (optional)
+    embed.add_field(
+        name="<:premium:112233445566778899> **Premium**",
+        value="Unlock more features with premium!",
+        inline=False
+    )
 
     await ctx.send(embed=embed)
 

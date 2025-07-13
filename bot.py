@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import json
 import os
+from discord import ui, Interaction
 
 TOKEN = os.getenv("DISCORD_BOT_TOKEN") 
 DEFAULT_PREFIX = "!"
@@ -51,12 +52,62 @@ intents.members = True
 bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None)
 
 # Custom help command styled like the example
+
+# --- Help Command with Dropdown ---
+
+
+class ModuleSelect(ui.Select):
+    def __init__(self, modules):
+        options = [
+            discord.SelectOption(label=name, description=f"Show info about {name}", emoji=emoji)
+            for emoji, name in modules
+        ]
+        super().__init__(placeholder="Select a module...", min_values=1, max_values=1, options=options)
+        self.modules = modules
+
+    async def callback(self, interaction: Interaction):
+        selected = self.values[0]
+        emoji = next((e for e, n in self.modules if n == selected), "❓")
+        embed = discord.Embed(
+            title=f"{emoji} {selected} Module",
+            description=f"Information about the **{selected}** module will go here.",
+            color=discord.Color.blurple()
+        )
+        embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.display_avatar.url if hasattr(interaction.user, 'display_avatar') else interaction.user.avatar.url if interaction.user.avatar else None)
+        await interaction.response.edit_message(embed=embed, view=self.view)
+
+class ModuleView(ui.View):
+    def __init__(self, modules, timeout=60):
+        super().__init__(timeout=timeout)
+        self.add_item(ModuleSelect(modules))
+
 @bot.command(name="help")
 async def custom_help(ctx):
     guild = ctx.guild
     user = ctx.author
     icon_url = guild.icon.url if guild.icon else None
     banner_url = guild.banner.url if guild.banner else None
+
+    modules = [
+        ("🔴", "General"),
+        ("🛠️", "Moderation"),
+        ("🤖", "Automod"),
+        ("✨", "Extra"),
+        ("🛡️", "Security"),
+        ("🎫", "Ticket"),
+        ("⭐", "Starboard"),
+        ("⚙️", "Automation"),
+        ("🚫", "Ignore"),
+        ("🎭", "Reactionrole"),
+        ("🖼️", "Media"),
+        ("🎉", "Giveaway"),
+        ("🔊", "Voice Moderation"),
+        ("🧩", "Customrole"),
+        ("🚀", "Booster"),
+        ("👋", "Welcomer"),
+        ("🛠️", "Utility"),
+        ("🎲", "Fun")
+    ]
 
     embed = discord.Embed(
         description=(
@@ -66,51 +117,18 @@ async def custom_help(ctx):
         ),
         color=discord.Color.blurple()
     )
-
-    # Set author with server icon (top right corner)
-    embed.set_author(name=user.display_name, icon_url=icon_url)
-
-    # Add server banner as image if available
+    embed.set_author(name=guild.name, icon_url=icon_url)
     if banner_url:
         embed.set_image(url=banner_url)
-
-    # Modules section (customize as needed)
-    modules = [
-        ("🔴 General", ""),
-        ("🛠️ Moderation", ""),
-        ("🤖 Automod", ""),
-        ("✨ Extra", ""),
-        ("🛡️ Security", ""),
-        ("🎫 Ticket", ""),
-        ("⭐ Starboard", ""),
-        ("⚙️ Automation", ""),
-        ("🚫 Ignore", ""),
-        ("🎭 Reactionrole", ""),
-        ("🖼️ Media", ""),
-        ("🎉 Giveaway", ""),
-        ("🔊 Voice Moderation", ""),
-        ("🧩 Customrole", ""),
-        ("🚀 Booster", ""),
-        ("👋 Welcomer", ""),
-        ("🛠️ Utility", ""),
-        ("🎲 Fun", "")
-    ]
-
-    module_list = "\n".join([f"{emoji} {name}" for (emoji, name) in [(m.split(' ',1)[0], m.split(' ',1)[1]) if ' ' in m else (m, '') for m, _ in modules]])
     embed.add_field(
         name="📂 **Modules**",
-        value=module_list,
+        value="Select a module from the dropdown below to view more info!",
         inline=False
     )
+    embed.set_footer(text=f"Requested by {user.display_name}", icon_url=user.display_avatar.url if hasattr(user, 'display_avatar') else user.avatar.url if user.avatar else None)
 
-    # Premium section (optional)
-    embed.add_field(
-        name="<:premium:112233445566778899> **Premium**",
-        value="Unlock more features with premium!",
-        inline=False
-    )
-
-    await ctx.send(embed=embed)
+    view = ModuleView(modules)
+    await ctx.send(embed=embed, view=view)
 
 @bot.event
 async def on_ready():

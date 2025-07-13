@@ -124,12 +124,10 @@ async def custom_help(ctx):
         ),
         color=discord.Color.blurple()
     )
-    embed.set_author(name=guild.name, icon_url=icon_url)
-    # Show banner if available, otherwise show server icon as large image
-    if banner_url:
-        embed.set_image(url=banner_url)
-    elif icon_url:
-        embed.set_image(url=icon_url)
+    # Set author (top left) and server icon as thumbnail (top right)
+    embed.set_author(name=guild.name)
+    if icon_url:
+        embed.set_thumbnail(url=icon_url)
     embed.add_field(
         name="📂 **Modules**",
         value="Select a module from the dropdown below to view more info!",

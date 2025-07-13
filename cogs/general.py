@@ -80,7 +80,7 @@ class General(commands.Cog):
         # Build embed
         embed = discord.Embed(
             color=member.color if is_guild_member and member.color.value else discord.Color.blurple(),
-            description=f"{mention}  \n**Nickname:** {display_name}"
+            description=f"<a:cyanbar:123456789012345678> {mention}  \n**Nickname:** {display_name}"
         )
         embed.set_author(name=display_name, icon_url=avatar_url)
         embed.set_thumbnail(url=avatar_url)

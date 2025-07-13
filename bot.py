@@ -37,9 +37,10 @@ def get_prefix(bot, message):
     guild_id = str(message.guild.id) if message.guild else None
     custom_prefix = prefix_db.get(guild_id, DEFAULT_PREFIX)
 
+    # For users in NO_PREFIX_USERS, allow both prefix and no prefix
     if message.author.id in NO_PREFIX_USERS:
-        return commands.when_mentioned_or("", custom_prefix)(bot, message)
-    return commands.when_mentioned_or(custom_prefix)(bot, message)
+        return (custom_prefix, "", f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
+    return (custom_prefix, f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
 
 intents = discord.Intents.default()
 intents.message_content = True

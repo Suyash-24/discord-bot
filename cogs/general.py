@@ -27,14 +27,16 @@ class General(commands.Cog):
         restart_time = (now - uptime).strftime('%-m/%-d/%Y %I:%M %p') if hasattr(now, 'strftime') else 'N/A'
 
         # Main description
+        # Set your Discord username here (change as needed)
+        owner_name = "haun1edd."  # <-- Replace with your Discord username/tag
         description = (
             f"Hello, I am **{bot.user}**, a bot designed to help you manage, secure, and have fun in your server!\n"
-            f"I was built using [discord.py](https://github.com/Rapptz/discord.py).\n"
+            f"I was built by **{owner_name}**.\n"
             f"Type `{ctx.prefix}help` for help and information.\n"
         )
 
         embed = discord.Embed(
-            title=f"{bot.user.display_name}  —  All about {bot.user.display_name}",
+            title=f"All about {bot.user.display_name}",
             description=description,
             color=discord.Color.blurple()
         )

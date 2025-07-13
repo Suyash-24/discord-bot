@@ -1,18 +1,19 @@
+*** End Patch
 import discord
 from discord.ext import commands
 import json
 import os
 
-TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Load token from environment variable
+TOKEN = os.getenv("DISCORD_BOT_TOKEN") 
 DEFAULT_PREFIX = "!"
 
 
-# Load no prefix users from file
+
 def load_no_prefix_users():
     if os.path.exists("no_prefix_users.json"):
         with open("no_prefix_users.json", "r") as f:
             return json.load(f)
-    return [1105502119731150858]  # Default owner ID
+    return [1105502119731150858] 
 
 def save_no_prefix_users(data):
     with open("no_prefix_users.json", "w") as f:
@@ -20,7 +21,7 @@ def save_no_prefix_users(data):
 
 NO_PREFIX_USERS = load_no_prefix_users()
 
-# Load prefix database
+
 def load_prefixes():
     if os.path.exists("prefixes.json"):
         with open("prefixes.json", "r") as f:
@@ -37,7 +38,7 @@ def get_prefix(bot, message):
     guild_id = str(message.guild.id) if message.guild else None
     custom_prefix = prefix_db.get(guild_id, DEFAULT_PREFIX)
 
-    # For users in NO_PREFIX_USERS, allow both prefix and no prefix
+   
     if message.author.id in NO_PREFIX_USERS:
         return (custom_prefix, "", f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
     return (custom_prefix, f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
@@ -47,7 +48,37 @@ intents.message_content = True
 intents.guilds = True
 intents.members = True
 
-bot = commands.Bot(command_prefix=get_prefix, intents=intents)
+
+bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None)
+
+# Custom help command with server banner and icon
+@bot.command(name="help")
+async def custom_help(ctx):
+    guild = ctx.guild
+    embed = discord.Embed(
+        title=f"Help for {guild.name}",
+        description="Here are the available commands:",
+        color=discord.Color.blurple()
+    )
+
+    # Add server icon as thumbnail
+    if guild.icon:
+        embed.set_thumbnail(url=guild.icon.url)
+
+    # Add server banner as image if available
+    if guild.banner:
+        embed.set_image(url=guild.banner.url)
+
+    # List commands
+    for command in bot.commands:
+        if not command.hidden:
+            embed.add_field(
+                name=f"{command.qualified_name}",
+                value=command.help or "No description.",
+                inline=False
+            )
+
+    await ctx.send(embed=embed)
 
 @bot.event
 async def on_ready():
@@ -83,9 +114,9 @@ async def no_prefix(ctx, action: str = "", member: str = ""):
         return await ctx.send("❌ Only the bot owner can use this command.")
 
     if action not in ["add", "remove"] or not member:
-        return await ctx.send("Usage: `no_prefix add @user` or `no_prefix remove @user`")
+        return await ctx.send("Usage: `np add @user` or `np remove @user`")
 
-    # Try to resolve member from mention or ID
+   
     member_obj = None
     if member.isdigit():
         member_obj = ctx.guild.get_member(int(member))

@@ -56,38 +56,71 @@ bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None
 # --- Help Command with Dropdown ---
 
 
+
+class BackToMenuButton(ui.Button):
+    def __init__(self, main_embed, modules):
+        super().__init__(label="Back to Main Menu", style=discord.ButtonStyle.secondary)
+        self.main_embed = main_embed
+        self.modules = modules
+
+    async def callback(self, interaction: Interaction):
+        # Recreate the main menu view and embed
+        view = ModuleView(self.modules)
+        sent = await interaction.response.edit_message(embed=self.main_embed, view=view)
+        view.message = interaction.message
+
 class ModuleSelect(ui.Select):
-    def __init__(self, modules):
+    def __init__(self, modules, bot=None, main_embed=None):
         options = [
             discord.SelectOption(label=name, description=f"Show info about {name}", emoji=emoji)
             for emoji, name in modules
         ]
         super().__init__(placeholder="Select a module...", min_values=1, max_values=1, options=options)
         self.modules = modules
+        self.bot = bot
+        self.main_embed = main_embed
 
     async def callback(self, interaction: Interaction):
         selected = self.values[0]
         emoji = next((e for e, n in self.modules if n == selected), "❓")
-        embed = discord.Embed(
-            title=f"{emoji} {selected} Module",
-            description=f"Information about the **{selected}** module will go here.",
-            color=discord.Color.blurple()
-        )
+        # If General, show all general commands
+        if selected.lower() == "general" and self.bot:
+            cog = self.bot.get_cog("General")
+            commands_list = [
+                f"`{cmd.name}`: {cmd.help or 'No description.'}"
+                for cmd in cog.get_commands()
+            ] if cog else ["No commands found."]
+            embed = discord.Embed(
+                title=f"{emoji} General Module",
+                description="\n".join(commands_list),
+                color=discord.Color.blurple()
+            )
+        else:
+            embed = discord.Embed(
+                title=f"{emoji} {selected} Module",
+                description=f"Information about the **{selected}** module will go here.",
+                color=discord.Color.blurple()
+            )
         embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.display_avatar.url if hasattr(interaction.user, 'display_avatar') else interaction.user.avatar.url if interaction.user.avatar else None)
-        await interaction.response.edit_message(embed=embed, view=self.view)
+        # Add back button
+        view = ModuleView(self.modules, bot=self.bot, main_embed=self.main_embed)
+        view.clear_items()
+        view.add_item(BackToMenuButton(self.main_embed, self.modules))
+        await interaction.response.edit_message(embed=embed, view=view)
 
 
 from typing import Optional
 
 class ModuleView(ui.View):
-    def __init__(self, modules, timeout=60):
+    def __init__(self, modules, bot=None, main_embed=None, timeout=60):
         super().__init__(timeout=timeout)
-        self.select = ModuleSelect(modules)
+        self.select = ModuleSelect(modules, bot=bot, main_embed=main_embed)
         self.add_item(self.select)
         self.message: Optional[discord.Message] = None
+        self.bot = bot
+        self.main_embed = main_embed
 
     async def on_timeout(self):
-        # Disable the dropdown and update the message to show expired
         self.select.disabled = True
         for child in self.children:
             if isinstance(child, (ui.Select, ui.Button)):
@@ -151,7 +184,7 @@ async def custom_help(ctx):
     )
     embed.set_footer(text=f"Requested by {user.display_name}", icon_url=user.display_avatar.url if hasattr(user, 'display_avatar') else user.avatar.url if user.avatar else None)
 
-    view = ModuleView(modules)
+    view = ModuleView(modules, bot=bot, main_embed=embed)
     sent = await ctx.send(embed=embed, view=view)
     view.message = sent
 

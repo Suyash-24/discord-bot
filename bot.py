@@ -121,13 +121,15 @@ async def custom_help(ctx):
             f"**About:**\n"
             f"{bot_name} is a multipurpose Discord bot designed to help you manage, secure, and have fun in your server. "
             f"It features moderation, automod, tickets, giveaways, utility, and much more!\n\n"
-            f"Use `help` to unlock **unique features**."
         ),
         color=discord.Color.blurple()
     )
     embed.set_author(name=guild.name, icon_url=icon_url)
+    # Show banner if available, otherwise show server icon as large image
     if banner_url:
         embed.set_image(url=banner_url)
+    elif icon_url:
+        embed.set_image(url=icon_url)
     embed.add_field(
         name="📂 **Modules**",
         value="Select a module from the dropdown below to view more info!",

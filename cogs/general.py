@@ -63,8 +63,25 @@ class General(commands.Cog):
         icon_link = f"[Icon link]({guild.icon.url})" if guild.icon else "No icon"
 
         # Prefixes (show all, or just main one)
-        from ..bot import prefix_db, DEFAULT_PREFIX
-        prefix = prefix_db.get(str(guild.id), DEFAULT_PREFIX)
+        # Use bot's get_prefix function to get the current prefix for this guild
+        prefix = None
+        if hasattr(self.bot, 'command_prefix'):
+            # command_prefix can be a function or a string
+            if callable(self.bot.command_prefix):
+                # Simulate a message object for get_prefix
+                class Dummy:
+                    def __init__(self, guild):
+                        self.guild = guild
+                        self.author = ctx.author
+                prefixes = self.bot.command_prefix(self.bot, Dummy(guild))
+                if isinstance(prefixes, (list, tuple)):
+                    prefix = prefixes[0]
+                else:
+                    prefix = prefixes
+            else:
+                prefix = self.bot.command_prefix
+        if not prefix:
+            prefix = '!'
         prefix_display = f"`{prefix}`"
 
         # Members

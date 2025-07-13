@@ -76,10 +76,26 @@ class ModuleSelect(ui.Select):
         embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.display_avatar.url if hasattr(interaction.user, 'display_avatar') else interaction.user.avatar.url if interaction.user.avatar else None)
         await interaction.response.edit_message(embed=embed, view=self.view)
 
+
+from typing import Optional
+
 class ModuleView(ui.View):
     def __init__(self, modules, timeout=60):
         super().__init__(timeout=timeout)
-        self.add_item(ModuleSelect(modules))
+        self.select = ModuleSelect(modules)
+        self.add_item(self.select)
+        self.message: Optional[discord.Message] = None
+
+    async def on_timeout(self):
+        # Disable the dropdown and update the message to show expired
+        self.select.disabled = True
+        for child in self.children:
+            if isinstance(child, (ui.Select, ui.Button)):
+                child.disabled = True
+        if self.message:
+            embed = self.message.embeds[0].copy() if self.message.embeds else discord.Embed(description="This help menu has expired.")
+            embed.description = ("This help menu has expired\n\n" + (embed.description or ""))
+            await self.message.edit(embed=embed, view=self)
 
 @bot.command(name="help")
 async def custom_help(ctx):
@@ -136,10 +152,21 @@ async def custom_help(ctx):
     embed.set_footer(text=f"Requested by {user.display_name}", icon_url=user.display_avatar.url if hasattr(user, 'display_avatar') else user.avatar.url if user.avatar else None)
 
     view = ModuleView(modules)
-    await ctx.send(embed=embed, view=view)
+    sent = await ctx.send(embed=embed, view=view)
+    view.message = sent
 
+
+
+# Load cogs
+import asyncio
+cogs_loaded = False
 @bot.event
 async def on_ready():
+    global cogs_loaded
+    # Load cogs only once
+    if not cogs_loaded:
+        await bot.load_extension('cogs.general')
+        cogs_loaded = True
     try:
         synced = await bot.tree.sync()
         print(f"✅ Synced {len(synced)} slash command(s).")

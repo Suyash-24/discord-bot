@@ -12,12 +12,46 @@ class General(commands.Cog):
     @commands.command()
     async def about(self, ctx):
         """Show info about the bot."""
+        bot = self.bot
+        # Bot stats
+        total_guilds = len(bot.guilds)
+        total_users = sum(guild.member_count or 0 for guild in bot.guilds)
+        total_text_channels = sum(len([c for c in guild.channels if isinstance(c, discord.TextChannel)]) for guild in bot.guilds)
+        total_voice_channels = sum(len([c for c in guild.channels if isinstance(c, discord.VoiceChannel)]) for guild in bot.guilds)
+        # Uptime
+        import datetime
+        now = datetime.datetime.utcnow()
+        if not hasattr(bot, 'start_time'):
+            bot.start_time = now
+        uptime = now - bot.start_time
+        restart_time = (now - uptime).strftime('%-m/%-d/%Y %I:%M %p') if hasattr(now, 'strftime') else 'N/A'
+
+        # Main description
+        description = (
+            f"Hello, I am **{bot.user}**, a bot designed to help you manage, secure, and have fun in your server!\n"
+            f"I was built using [discord.py](https://github.com/Rapptz/discord.py).\n"
+            f"Type `{ctx.prefix}help` for help and information.\n"
+        )
+
         embed = discord.Embed(
-            title="About the Bot",
-            description="A multipurpose Discord bot for moderation, fun, and more!",
+            title=f"{bot.user.display_name}  —  All about {bot.user.display_name}",
+            description=description,
             color=discord.Color.blurple()
         )
-        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        # Thumbnail/icon
+        if bot.user.avatar:
+            embed.set_thumbnail(url=bot.user.avatar.url)
+        # Stats section
+        stats = (
+            f"**Stats**\n"
+            f"Servers: `{total_guilds}`\n"
+            f"Users: `{total_users}`\n"
+            f"Text Channels: `{total_text_channels}`\n"
+            f"Voice Channels: `{total_voice_channels}`\n"
+        )
+        embed.add_field(name="\u200b", value=stats, inline=False)
+        # Uptime/Restart
+        embed.set_footer(text=f"Last restart • {restart_time} | Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
         await ctx.send(embed=embed)
 
     @commands.command()

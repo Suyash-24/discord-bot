@@ -80,7 +80,7 @@ class General(commands.Cog):
         # Build embed
         embed = discord.Embed(
             color=member.color if is_guild_member and member.color.value else discord.Color.blurple(),
-            description=f"<a:cyanbar:123456789012345678> {mention}  \n**Nickname:** {display_name}"
+            description=f"<a:cyanbar:123456789012345678> {mention}"
         )
         embed.set_author(name=display_name, icon_url=avatar_url)
         embed.set_thumbnail(url=avatar_url)
@@ -93,7 +93,9 @@ class General(commands.Cog):
             embed.add_field(name="Acknowledgements", value=ack_field, inline=False)
         embed.add_field(name="ID", value=f"`{member.id}`", inline=False)
         embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
-        embed.set_image(url=avatar_url)
+        # Show banner at bottom if available, else nothing
+        if hasattr(member, 'banner') and member.banner:
+            embed.set_image(url=member.banner.url)
         await ctx.send(embed=embed)
 
     @commands.command()

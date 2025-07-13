@@ -24,15 +24,76 @@ class General(commands.Cog):
     async def userinfo(self, ctx, member: Optional[discord.Member] = None):
         """Show info about a user."""
         member = member or ctx.author
+        is_guild_member = isinstance(member, discord.Member)
+        display_name = member.display_name if is_guild_member else member.name
+        mention = member.mention
+        avatar_url = member.display_avatar.url if hasattr(member, 'display_avatar') else member.avatar.url if member.avatar else None
+
+        # Dates
+        joined = member.joined_at.strftime('%a, %b %d, %Y %I:%M %p') if is_guild_member and member.joined_at else "N/A"
+        created = member.created_at.strftime('%a, %b %d, %Y %I:%M %p')
+
+        # Roles
+        roles = []
+        if is_guild_member:
+            roles = [role for role in member.roles if role.name != "@everyone"]
+            roles_sorted = sorted(roles, key=lambda r: r.position, reverse=True)
+            roles_display = " ".join([role.mention for role in roles_sorted[:10]])
+            if len(roles_sorted) > 10:
+                roles_display += f" and {len(roles_sorted)-10} more..."
+            roles_field = f"{roles_display}" if roles_display else "None"
+        else:
+            roles_field = "N/A"
+
+        # Permissions
+        key_perms = []
+        if is_guild_member:
+            perms = member.guild_permissions
+            perm_names = [
+                ("Administrator", perms.administrator),
+                ("Manage Server", perms.manage_guild),
+                ("Manage Roles", perms.manage_roles),
+                ("Manage Channels", perms.manage_channels),
+                ("Manage Messages", perms.manage_messages),
+                ("Manage Webhooks", perms.manage_webhooks),
+                ("Manage Nicknames", perms.manage_nicknames),
+                ("Manage Emojis and Stickers", perms.manage_emojis_and_stickers),
+                ("Kick Members", perms.kick_members),
+                ("Ban Members", perms.ban_members),
+                ("Mention Everyone", perms.mention_everyone),
+                ("Timeout Members", getattr(perms, 'moderate_members', False)),
+            ]
+            key_perms = [name for name, has in perm_names if has]
+        perms_field = ", ".join(key_perms) if key_perms else "None"
+
+        # Acknowledgements
+        acknowledgements = []
+        if is_guild_member:
+            if member.guild.owner_id == member.id:
+                acknowledgements.append("Server Owner")
+            if member.guild_permissions.administrator:
+                acknowledgements.append("Server Admin")
+        if member.bot:
+            acknowledgements.append("Bot")
+        ack_field = ", ".join(acknowledgements) if acknowledgements else "None"
+
+        # Build embed
         embed = discord.Embed(
-            title=f"User Info - {member}",
-            color=discord.Color.green()
+            color=member.color if is_guild_member and member.color.value else discord.Color.blurple(),
+            description=f"{mention}  \n**Nickname:** {display_name}"
         )
-        embed.set_thumbnail(url=member.display_avatar.url if hasattr(member, 'display_avatar') else member.avatar.url if member.avatar else None)
-        embed.add_field(name="ID", value=member.id)
-        embed.add_field(name="Joined", value=member.joined_at.strftime('%Y-%m-%d %H:%M:%S') if member.joined_at else "N/A")
-        embed.add_field(name="Account Created", value=member.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+        embed.set_author(name=display_name, icon_url=avatar_url)
+        embed.set_thumbnail(url=avatar_url)
+        embed.add_field(name="Joined", value=joined, inline=True)
+        embed.add_field(name="Registered", value=created, inline=True)
+        embed.add_field(name=f"Roles [{len(roles)}]", value=roles_field, inline=False)
+        if perms_field != "None":
+            embed.add_field(name="Key Permissions", value=perms_field, inline=False)
+        if ack_field != "None":
+            embed.add_field(name="Acknowledgements", value=ack_field, inline=False)
+        embed.add_field(name="ID", value=f"`{member.id}`", inline=False)
         embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        embed.set_image(url=avatar_url)
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -96,7 +157,7 @@ class General(commands.Cog):
         boost_level = f"Level {guild.premium_tier} (maxed)" if guild.premium_tier == 3 else f"Level {guild.premium_tier}"
 
         embed = discord.Embed(
-            title=f"Info for {guild.name} \U0001F338 • Lounge • Community • Vcs • Pfps\n• Banners • Active • Hangout !!",
+            title=f"Info for {guild.name} ",
             color=discord.Color.blurple()
         )
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)

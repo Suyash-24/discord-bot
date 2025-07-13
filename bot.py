@@ -109,10 +109,18 @@ async def custom_help(ctx):
         ("🎲", "Fun")
     ]
 
+    # Get the current prefix for this server
+    prefix = prefix_db.get(str(guild.id), DEFAULT_PREFIX)
+
+    bot_name = bot.user.name if bot.user else "This bot"
     embed = discord.Embed(
         description=(
             f"Hey! {user.mention},\n"
-            f"It's **{guild.name}** here, your all-in-one server management & security partner.\n"
+            f"This bot is made for **{guild.name}**.\n"
+            f"Prefix for this server: `{prefix}`\n\n"
+            f"**About:**\n"
+            f"{bot_name} is a multipurpose Discord bot designed to help you manage, secure, and have fun in your server. "
+            f"It features moderation, automod, tickets, giveaways, utility, and much more!\n\n"
             f"Use `help` to unlock **unique features**."
         ),
         color=discord.Color.blurple()

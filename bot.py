@@ -93,13 +93,13 @@ class ModuleSelect(ui.Select):
             ] if cog else ["No commands found."]
             embed = discord.Embed(
                 title=f"{emoji} General Module",
-                description=f"<a:cyanbar:123456789012345678>\n" + "\n".join(commands_list),
+                description=f"\n".join(commands_list),
                 color=discord.Color.blurple()
             )
         else:
             embed = discord.Embed(
                 title=f"{emoji} {selected} Module",
-                description=f"<a:cyanbar:123456789012345678>\nInformation about the **{selected}** module will go here.",
+                description=f"Information about the **{selected}** module will go here.",
                 color=discord.Color.blurple()
             )
         embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.display_avatar.url if hasattr(interaction.user, 'display_avatar') else interaction.user.avatar.url if interaction.user.avatar else None)
@@ -130,8 +130,6 @@ class ModuleView(ui.View):
             embed = self.message.embeds[0].copy() if self.message.embeds else discord.Embed(description="This help menu has expired.")
             desc = embed.description or ""
             # Prepend cyan bar if not present
-            if not desc.startswith("<a:cyanbar:123456789012345678>"):
-                desc = f"<a:cyanbar:123456789012345678>\n" + desc
             embed.description = ("This help menu has expired\n\n" + desc)
             await self.message.edit(embed=embed, view=self)
 
@@ -169,7 +167,7 @@ async def custom_help(ctx):
     bot_name = bot.user.name if bot.user else "This bot"
     embed = discord.Embed(
         description=(
-            f"<a:cyanbar:123456789012345678> Hey! {user.mention},\n"
+            f"Hey! {user.mention},\n"
             f"This bot is made for **{guild.name}**.\n"
             f"Prefix for this server: `{prefix}`\n\n"
             f"**About:**\n"

@@ -14,7 +14,7 @@ class General(commands.Cog):
         """Show info about the bot."""
         embed = discord.Embed(
             title="About the Bot",
-            description="<a:cyanbar:123456789012345678> A multipurpose Discord bot for moderation, fun, and more!",
+            description="A multipurpose Discord bot for moderation, fun, and more!",
             color=discord.Color.blurple()
         )
         embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
@@ -80,7 +80,7 @@ class General(commands.Cog):
         # Build embed
         embed = discord.Embed(
             color=member.color if is_guild_member and member.color.value else discord.Color.blurple(),
-            description=f"<a:cyanbar:123456789012345678> {mention}"
+            description=f"{mention}"
         )
         embed.set_author(name=display_name, icon_url=avatar_url)
         embed.set_thumbnail(url=avatar_url)
@@ -160,7 +160,6 @@ class General(commands.Cog):
 
         embed = discord.Embed(
             title=f"Info for {guild.name} ",
-            description="<a:cyanbar:123456789012345678>",
             color=discord.Color.blurple()
         )
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
@@ -185,7 +184,6 @@ class General(commands.Cog):
         member = member or ctx.author
         embed = discord.Embed(
             title=f"Avatar - {member}",
-            description="<a:cyanbar:123456789012345678>",
             color=discord.Color.purple()
         )
         embed.set_image(url=member.display_avatar.url if hasattr(member, 'display_avatar') else member.avatar.url if member.avatar else None)

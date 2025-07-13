@@ -65,9 +65,10 @@ class BackToMenuButton(ui.Button):
 
     async def callback(self, interaction: Interaction):
         # Recreate the main menu view and embed
-        view = ModuleView(self.modules)
-        sent = await interaction.response.edit_message(embed=self.main_embed, view=view)
-        view.message = interaction.message
+        view = ModuleView(self.modules, bot=interaction.client, main_embed=self.main_embed)
+        view.clear_items()  # Remove any stacked items
+        view.add_item(view.select)  # Add only the dropdown
+        await interaction.response.edit_message(embed=self.main_embed, view=view)
 
 class ModuleSelect(ui.Select):
     def __init__(self, modules, bot=None, main_embed=None):
@@ -104,8 +105,8 @@ class ModuleSelect(ui.Select):
         embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.display_avatar.url if hasattr(interaction.user, 'display_avatar') else interaction.user.avatar.url if interaction.user.avatar else None)
         # Add back button
         view = ModuleView(self.modules, bot=self.bot, main_embed=self.main_embed)
-        view.clear_items()
-        view.add_item(BackToMenuButton(self.main_embed, self.modules))
+        view.clear_items()  # Remove any stacked items
+        view.add_item(BackToMenuButton(self.main_embed, self.modules))  # Add only the back button
         await interaction.response.edit_message(embed=embed, view=view)
 
 

@@ -39,15 +39,62 @@ class General(commands.Cog):
     async def serverinfo(self, ctx):
         """Show info about the server."""
         guild = ctx.guild
+        features = {
+            "Server Discovery": "Server Discovery" in guild.features,
+            "Invite Splash": "INVITE_SPLASH" in guild.features,
+            "Vanity Invite": "VANITY_URL" in guild.features,
+            "News Channels": "NEWS" in guild.features,
+            "Animated Icon": "ANIMATED_ICON" in guild.features,
+            "Banner": bool(guild.banner)
+        }
+        feature_text = "\n".join([
+            f"{'✅' if v else '❌'} {k}" for k, v in features.items()
+        ])
+
+        # Channels
+        text_channels = len([c for c in guild.channels if isinstance(c, discord.TextChannel)])
+        voice_channels = len([c for c in guild.channels if isinstance(c, discord.VoiceChannel)])
+        locked_text = len([c for c in guild.text_channels if c.overwrites_for(guild.default_role).read_messages is False])
+        locked_voice = len([c for c in guild.voice_channels if c.overwrites_for(guild.default_role).connect is False])
+
+        # Info
+        scanning = "✅ Scanning Images" if "COMMUNITY" in guild.features else "❌ Scanning Images"
+        verification = f"Verification level: {str(guild.verification_level)}"
+        icon_link = f"[Icon link]({guild.icon.url})" if guild.icon else "No icon"
+
+        # Prefixes (show all, or just main one)
+        from ..bot import prefix_db, DEFAULT_PREFIX
+        prefix = prefix_db.get(str(guild.id), DEFAULT_PREFIX)
+        prefix_display = f"`{prefix}`"
+
+        # Members
+        total = guild.member_count
+        humans = len([m for m in guild.members if not m.bot])
+        bots = len([m for m in guild.members if m.bot])
+
+        # Roles
+        roles = len(guild.roles)
+
+        # Boosts
+        boost_level = f"Level {guild.premium_tier} (maxed)" if guild.premium_tier == 3 else f"Level {guild.premium_tier}"
+
         embed = discord.Embed(
-            title=f"Server Info - {guild.name}",
-            color=discord.Color.blue()
+            title=f"Info for {guild.name} \U0001F338 • Lounge • Community • Vcs • Pfps\n• Banners • Active • Hangout !!",
+            color=discord.Color.blurple()
         )
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
-        embed.add_field(name="ID", value=guild.id)
-        embed.add_field(name="Owner", value=guild.owner)
-        embed.add_field(name="Members", value=guild.member_count)
-        embed.add_field(name="Created At", value=guild.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+        if guild.banner:
+            embed.set_image(url=guild.banner.url)
+        embed.add_field(name="Owner", value=guild.owner, inline=True)
+        embed.add_field(name="Features", value=feature_text, inline=True)
+        embed.add_field(name="Boosts", value=boost_level, inline=True)
+        embed.add_field(name="Channels", value=f"# {text_channels} ({locked_text} locked)\n\U0001F50A {voice_channels} ({locked_voice} locked)", inline=True)
+        embed.add_field(name="Info", value=f"{scanning}\n{verification}\n{icon_link}", inline=True)
+        embed.add_field(name="Prefixes", value=prefix_display, inline=True)
+        embed.add_field(name="Members", value=f"Total: {total}\nHumans: {humans}\nBots: {bots}", inline=True)
+        embed.add_field(name="Roles", value=f"{roles} roles", inline=True)
+        embed.add_field(name="ID", value=guild.id, inline=True)
+        embed.add_field(name="Created", value=f"<t:{int(guild.created_at.timestamp())}:f>", inline=True)
         embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
         await ctx.send(embed=embed)
 

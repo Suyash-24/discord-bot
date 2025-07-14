@@ -38,8 +38,15 @@ def get_prefix(bot, message):
     guild_id = str(message.guild.id) if message.guild else None
     custom_prefix = prefix_db.get(guild_id, DEFAULT_PREFIX)
 
-   
-    if message.author.id in NO_PREFIX_USERS:
+    # Always reload no-prefix users from disk for up-to-date access
+    def load_no_prefix_users():
+        if os.path.exists("no_prefix_users.json"):
+            with open("no_prefix_users.json", "r") as f:
+                return json.load(f)
+        return [1105502119731150858]
+    no_prefix_users = load_no_prefix_users()
+
+    if message.author.id in no_prefix_users:
         return (custom_prefix, "", f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
     return (custom_prefix, f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
 
@@ -129,7 +136,6 @@ class ModuleView(ui.View):
         if self.message:
             embed = self.message.embeds[0].copy() if self.message.embeds else discord.Embed(description="This help menu has expired.")
             desc = embed.description or ""
-            # Prepend cyan bar if not present
             embed.description = ("This help menu has expired\n\n" + desc)
             await self.message.edit(embed=embed, view=self)
 
@@ -202,6 +208,7 @@ async def on_ready():
     # Load cogs only once
     if not cogs_loaded:
         await bot.load_extension('cogs.general')
+        await bot.load_extension('cogs.moderation')
         cogs_loaded = True
     try:
         synced = await bot.tree.sync()

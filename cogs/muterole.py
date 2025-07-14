@@ -121,6 +121,7 @@ async def unmute(ctx, member: discord.Member):
         await ctx.send(f"Failed to unmute: {e}")
 
 async def setup(bot):
+    print("[MUTEROLE] Cog setup called.")
     await bot.add_cog(MuteRole(bot))
     bot.add_command(mute)
     bot.add_command(unmute)

@@ -214,9 +214,13 @@ async def on_ready():
     global cogs_loaded
     # Load cogs only once
     if not cogs_loaded:
-        await bot.load_extension('cogs.general')
-        await bot.load_extension('cogs.moderation')
-        await bot.load_extension('cogs.muterole')
+        try:
+            await bot.load_extension('cogs.general')
+            await bot.load_extension('cogs.moderation')
+            await bot.load_extension('cogs.muterole')
+            print("[MUTEROLE] Cog loaded successfully.")
+        except Exception as cogerr:
+            print(f"[ERROR] Failed to load cog: {cogerr}")
         cogs_loaded = True
     try:
         synced = await bot.tree.sync()

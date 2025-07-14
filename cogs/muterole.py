@@ -91,14 +91,32 @@ class MuteRole(commands.Cog):
         import asyncio
         role_id = self.muteroles.get(str(ctx.guild.id))
         if not role_id:
-            await ctx.send("No mute role set. Use `muterole create <name>` or `muterole set <@role>` first.")
+            embed = discord.Embed(
+                title="Mute Role Not Set",
+                description="No mute role set for this server. Use `muterole create <name>` or `muterole set <@role>` first.",
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
             return
         role = ctx.guild.get_role(role_id)
         if not role:
-            await ctx.send("Mute role not found. Please set it again.")
+            embed = discord.Embed(
+                title="Mute Role Not Found",
+                description="Mute role not found. Please set it again using `muterole set <@role>`.",
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
             return
         if role in member.roles:
-            await ctx.send(f"{member.mention} is already muted.")
+            embed = discord.Embed(
+                title="Already Muted",
+                description=f"{member.mention} is already muted.",
+                color=discord.Color.blurple()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
             return
 
         # Parse duration
@@ -117,52 +135,108 @@ class MuteRole(commands.Cog):
                 elif unit == 'd':
                     seconds = num * 60 * 60 * 24
             else:
-                # If duration is not valid, treat as part of reason
                 reason = (duration + ' ' + (reason or '')).strip()
                 seconds = None
 
         try:
             await member.add_roles(role, reason=reason or "Muted by command")
-            msg = f"🔇 {member.mention} has been muted."
-            if seconds:
-                msg += f" Duration: {duration}"
-            msg += f" Reason: {reason or 'No reason provided.'}"
-            await ctx.send(msg)
+            embed = discord.Embed(
+                title="User Muted",
+                description=f"🔇 {member.mention} has been muted."
+                            + (f" Duration: {duration}" if seconds else "")
+                            + f"\nReason: {reason or 'No reason provided.'}",
+                color=discord.Color.blurple()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
             if seconds:
                 await asyncio.sleep(seconds)
-                # Check if still muted and unmute
                 if role in member.roles:
                     try:
                         await member.remove_roles(role, reason="Timed mute expired")
-                        await ctx.send(f"🔊 {member.mention} has been automatically unmuted after {duration}.")
+                        embed = discord.Embed(
+                            title="User Unmuted",
+                            description=f"🔊 {member.mention} has been automatically unmuted after {duration}.",
+                            color=discord.Color.blurple()
+                        )
+                        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+                        await ctx.send(embed=embed)
                     except Exception:
                         pass
         except discord.Forbidden:
-            await ctx.send("I do not have permission to add the mute role to this user.")
+            embed = discord.Embed(
+                title="Permission Error",
+                description="I do not have permission to add the mute role to this user.",
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
         except Exception as e:
-            await ctx.send(f"Failed to mute: {e}")
+            embed = discord.Embed(
+                title="Mute Failed",
+                description=f"Failed to mute: {e}",
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(moderate_members=True)
     async def unmute(self, ctx, member: discord.Member):
         role_id = self.muteroles.get(str(ctx.guild.id))
         if not role_id:
-            await ctx.send("No mute role set. Use `muterole create <name>` or `muterole set <@role>` first.")
+            embed = discord.Embed(
+                title="Mute Role Not Set",
+                description="No mute role set for this server. Use `muterole create <name>` or `muterole set <@role>` first.",
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
             return
         role = ctx.guild.get_role(role_id)
         if not role:
-            await ctx.send("Mute role not found. Please set it again.")
+            embed = discord.Embed(
+                title="Mute Role Not Found",
+                description="Mute role not found. Please set it again using `muterole set <@role>`.",
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
             return
         if role not in member.roles:
-            await ctx.send(f"{member.mention} is not muted.")
+            embed = discord.Embed(
+                title="Not Muted",
+                description=f"{member.mention} is not muted.",
+                color=discord.Color.blurple()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
             return
         try:
             await member.remove_roles(role, reason="Unmuted by command")
-            await ctx.send(f"🔊 {member.mention} has been unmuted.")
+            embed = discord.Embed(
+                title="User Unmuted",
+                description=f"🔊 {member.mention} has been unmuted.",
+                color=discord.Color.blurple()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
         except discord.Forbidden:
-            await ctx.send("I do not have permission to remove the mute role from this user.")
+            embed = discord.Embed(
+                title="Permission Error",
+                description="I do not have permission to remove the mute role from this user.",
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
         except Exception as e:
-            await ctx.send(f"Failed to unmute: {e}")
+            embed = discord.Embed(
+                title="Unmute Failed",
+                description=f"Failed to unmute: {e}",
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await ctx.send(embed=embed)
 
 async def setup(bot):
     print("[MUTEROLE] Cog setup called.")

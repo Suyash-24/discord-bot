@@ -38,7 +38,11 @@ def get_prefix(bot, message):
     guild_id = str(message.guild.id) if message.guild else None
     custom_prefix = prefix_db.get(guild_id, DEFAULT_PREFIX)
 
-    # Always reload no-prefix users from disk for up-to-date access
+    # Debug logging for prefix and no-prefix users
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("prefix_debug")
+
     def load_no_prefix_users():
         if os.path.exists("no_prefix_users.json"):
             with open("no_prefix_users.json", "r") as f:
@@ -46,8 +50,12 @@ def get_prefix(bot, message):
         return [1105502119731150858]
     no_prefix_users = load_no_prefix_users()
 
+    logger.info(f"[Prefix Debug] Message from {getattr(message.author, 'id', None)} ({getattr(message.author, 'name', None)}), guild: {guild_id}, custom_prefix: {custom_prefix}, no_prefix_users: {no_prefix_users}")
+
     if message.author.id in no_prefix_users:
+        logger.info(f"[Prefix Debug] No-prefix user detected: {message.author.id}")
         return (custom_prefix, "", f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
+    logger.info(f"[Prefix Debug] Using normal prefix for user: {message.author.id}")
     return (custom_prefix, f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
 
 intents = discord.Intents.default()

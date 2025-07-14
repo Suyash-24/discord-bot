@@ -123,5 +123,3 @@ async def unmute(ctx, member: discord.Member):
 async def setup(bot):
     print("[MUTEROLE] Cog setup called.")
     await bot.add_cog(MuteRole(bot))
-    bot.add_command(mute)
-    bot.add_command(unmute)

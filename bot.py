@@ -110,6 +110,24 @@ class ModuleSelect(ui.Select):
                 description=f"\n".join(commands_list),
                 color=discord.Color.blurple()
             )
+        elif selected.lower() == "moderation" and self.bot:
+            # List all moderation commands (including mute/unmute)
+            moderation_commands = [
+                ("ban", "Ban a user from the server."),
+                ("kick", "Kick a user from the server."),
+                ("mute", "Mute a user by assigning the mute role."),
+                ("unmute", "Unmute a user by removing the mute role."),
+                ("muterole", "Manage the mute role for this server."),
+                ("warn", "Warn a user (if implemented)."),
+                ("clear", "Clear messages (if implemented)."),
+                ("slowmode", "Set slowmode (if implemented)."),
+            ]
+            commands_list = [f"`{name}`: {desc}" for name, desc in moderation_commands]
+            embed = discord.Embed(
+                title=f"{emoji} Moderation Module",
+                description=f"\n".join(commands_list),
+                color=discord.Color.blurple()
+            )
         else:
             embed = discord.Embed(
                 title=f"{emoji} {selected} Module",

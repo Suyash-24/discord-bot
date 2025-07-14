@@ -70,19 +70,6 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed)
         # TODO: Log warning
 
-    @commands.command()
-    @commands.has_permissions(moderate_members=True)
-    async def mute(self, ctx, member: discord.Member, time: Optional[str] = None):
-        """Temporarily mutes a user."""
-        # TODO: Implement timed mute
-        await ctx.send(f"Mute command for {member.mention} (time: {time}) is not yet implemented.")
-
-    @commands.command()
-    @commands.has_permissions(moderate_members=True)
-    async def unmute(self, ctx, member: discord.Member):
-        """Unmutes a muted user."""
-        # TODO: Implement unmute
-        await ctx.send(f"Unmute command for {member.mention} is not yet implemented.")
 
     @commands.command()
     @commands.has_permissions(moderate_members=True)

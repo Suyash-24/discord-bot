@@ -216,6 +216,7 @@ async def on_ready():
     if not cogs_loaded:
         await bot.load_extension('cogs.general')
         await bot.load_extension('cogs.moderation')
+        await bot.load_extension('cogs.muterole')
         cogs_loaded = True
     try:
         synced = await bot.tree.sync()
@@ -243,7 +244,7 @@ async def slash_ping(interaction: discord.Interaction):
     await interaction.response.send_message(f"🏓 Pong! Latency: `{latency}ms`")
 
 @bot.command(name="no_prefix")
-async def no_prefix(ctx, action: str = "", member: str = ""):
+async def np(ctx, action: str = "", member: str = ""):
     owner_id = NO_PREFIX_USERS[0] if NO_PREFIX_USERS else 1105502119731150858
     if ctx.author.id != owner_id:
         return await ctx.send("❌ Only the bot owner can use this command.")

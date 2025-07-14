@@ -277,6 +277,56 @@ async def no_prefix(ctx, action: str = "", member: str = ""):
         save_no_prefix_users(NO_PREFIX_USERS)
         await ctx.send(f"✅ Removed no prefix from {member_obj.mention}")
 
+
+# --- Global Error Handler ---
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        perms = ', '.join(error.missing_permissions)
+        embed = discord.Embed(
+            title="Missing Permissions",
+            description=f"You are missing the following permission(s): `{perms}`",
+            color=discord.Color.red()
+        )
+        await ctx.send(embed=embed)
+    elif isinstance(error, commands.BotMissingPermissions):
+        perms = ', '.join(error.missing_permissions)
+        embed = discord.Embed(
+            title="Bot Missing Permissions",
+            description=f"I am missing the following permission(s): `{perms}`",
+            color=discord.Color.red()
+        )
+        await ctx.send(embed=embed)
+    elif isinstance(error, commands.CommandNotFound):
+        embed = discord.Embed(
+            title="Command Not Found",
+            description=f"That command does not exist. Use `/help` or `{DEFAULT_PREFIX}help` to see all commands.",
+            color=discord.Color.orange()
+        )
+        await ctx.send(embed=embed)
+    elif isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.BadArgument):
+        # Show usage/help for the command
+        cmd = ctx.command
+        usage = f"{DEFAULT_PREFIX}{cmd.qualified_name} {cmd.signature}" if cmd else ""
+        embed = discord.Embed(
+            title=f"Command {cmd.name if cmd else ''}",
+            description=cmd.help or "",
+            color=discord.Color.orange()
+        )
+        if usage:
+            embed.add_field(name="Usage", value=f"📒 Command Usage : `{usage}`", inline=False)
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
+    else:
+        # For any other error, print to console and send a generic error message
+        print(f"[ERROR] {type(error).__name__}: {error}")
+        embed = discord.Embed(
+            title="Error",
+            description=f"An unexpected error occurred: `{type(error).__name__}`\n{error}",
+            color=discord.Color.red()
+        )
+        await ctx.send(embed=embed)
+
 if not TOKEN:
     raise RuntimeError("DISCORD_BOT_TOKEN environment variable not set.")
 bot.run(TOKEN)

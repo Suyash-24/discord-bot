@@ -111,7 +111,7 @@ class ModuleSelect(ui.Select):
                 color=discord.Color.blurple()
             )
         elif selected.lower() == "moderation" and self.bot:
-            # List all moderation commands from muterole.py and moderation.py
+            # List all moderation commands from muterole.py and moderation.py (without automod)
             moderation_commands = [
                 ("muterole create <name>", "Create a mute role for the server."),
                 ("muterole set <@role>", "Set an existing role as the mute role."),
@@ -135,11 +135,6 @@ class ModuleSelect(ui.Select):
                 ("modlog", "Displays the mod log channel or actions."),
                 ("blacklist <member>", "Blacklists a user from using commands."),
                 ("whitelist <member>", "Whitelists a user from moderation actions."),
-                ("antiinvite <toggle>", "Toggles anti-invite system."),
-                ("antilink <toggle>", "Blocks all non-whitelisted links."),
-                ("antispam <toggle>", "Enables automatic spam detection."),
-                ("antighostping <toggle>", "Detects ghost pings and notifies staff."),
-                ("automod", "Opens interactive panel to configure auto moderation."),
             ]
             commands_list = [f"`{name}`: {desc}" for name, desc in moderation_commands]
             embed = discord.Embed(
@@ -255,7 +250,9 @@ async def on_ready():
             await bot.load_extension('cogs.general')
             await bot.load_extension('cogs.moderation')
             await bot.load_extension('cogs.muterole')
+            await bot.load_extension('cogs.automod')
             print("[MUTEROLE] Cog loaded successfully.")
+            print("[AUTOMOD] Cog loaded successfully.")
         except Exception as cogerr:
             print(f"[ERROR] Failed to load cog: {cogerr}")
         cogs_loaded = True

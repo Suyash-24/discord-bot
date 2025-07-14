@@ -54,9 +54,9 @@ def get_prefix(bot, message):
 
     if message.author.id in no_prefix_users:
         logger.info(f"[Prefix Debug] No-prefix user detected: {message.author.id}")
-        return (custom_prefix, "", f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
+        return (custom_prefix, "", f"<@!{bot.user.id}>", f"<@{bot.user.id}>")
     logger.info(f"[Prefix Debug] Using normal prefix for user: {message.author.id}")
-    return (custom_prefix, f"<@!{bot.user.id}> ", f"<@{bot.user.id}> ")
+    return (custom_prefix, f"<@!{bot.user.id}>", f"<@{bot.user.id}>")
 
 intents = discord.Intents.default()
 intents.message_content = True

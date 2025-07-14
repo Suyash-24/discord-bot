@@ -38,8 +38,6 @@ def get_prefix(bot, message):
     guild_id = str(message.guild.id) if message.guild else None
     custom_prefix = prefix_db.get(guild_id, DEFAULT_PREFIX)
 
-    # Always return a flat list of prefixes (discord.py supports this)
-    # For no-prefix users, allow both prefix and no prefix
     def load_no_prefix_users():
         if os.path.exists("no_prefix_users.json"):
             with open("no_prefix_users.json", "r") as f:
@@ -50,9 +48,13 @@ def get_prefix(bot, message):
     mention1 = f"<@!{bot.user.id}>"
     mention2 = f"<@{bot.user.id}>"
     prefixes = [custom_prefix, mention1, mention2]
+
+    # For no-prefix users, allow both prefix and no prefix
     if message.author.id in no_prefix_users:
-        # Allow no prefix (empty string) for these users
-        prefixes.insert(0, "")
+        # Only add the empty string if the message does NOT start with a valid prefix
+        content = message.content or ""
+        if not any(content.startswith(p) for p in prefixes):
+            prefixes = ["", *prefixes]
     return prefixes
 
 intents = discord.Intents.default()

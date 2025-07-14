@@ -1,3 +1,5 @@
+
+print('[MUTEROLE] muterole.py imported')
 import discord
 
 from typing import Optional
@@ -75,50 +77,50 @@ class MuteRole(commands.Cog):
         else:
             await ctx.send("No mute role set for this server.")
 
-# Standalone mute/unmute commands
-@commands.command()
-@commands.has_permissions(moderate_members=True)
-async def mute(ctx, member: discord.Member, *, reason: Optional[str] = None):
-    role_id = muteroles.get(str(ctx.guild.id))
-    if not role_id:
-        await ctx.send("No mute role set. Use `muterole create <name>` or `muterole set <@role>` first.")
-        return
-    role = ctx.guild.get_role(role_id)
-    if not role:
-        await ctx.send("Mute role not found. Please set it again.")
-        return
-    if role in member.roles:
-        await ctx.send(f"{member.mention} is already muted.")
-        return
-    try:
-        await member.add_roles(role, reason=reason or "Muted by command")
-        await ctx.send(f"🔇 {member.mention} has been muted. Reason: {reason or 'No reason provided.'}")
-    except discord.Forbidden:
-        await ctx.send("I do not have permission to add the mute role to this user.")
-    except Exception as e:
-        await ctx.send(f"Failed to mute: {e}")
 
-@commands.command()
-@commands.has_permissions(moderate_members=True)
-async def unmute(ctx, member: discord.Member):
-    role_id = muteroles.get(str(ctx.guild.id))
-    if not role_id:
-        await ctx.send("No mute role set. Use `muterole create <name>` or `muterole set <@role>` first.")
-        return
-    role = ctx.guild.get_role(role_id)
-    if not role:
-        await ctx.send("Mute role not found. Please set it again.")
-        return
-    if role not in member.roles:
-        await ctx.send(f"{member.mention} is not muted.")
-        return
-    try:
-        await member.remove_roles(role, reason="Unmuted by command")
-        await ctx.send(f"🔊 {member.mention} has been unmuted.")
-    except discord.Forbidden:
-        await ctx.send("I do not have permission to remove the mute role from this user.")
-    except Exception as e:
-        await ctx.send(f"Failed to unmute: {e}")
+    @commands.command()
+    @commands.has_permissions(moderate_members=True)
+    async def mute(self, ctx, member: discord.Member, *, reason: Optional[str] = None):
+        role_id = self.muteroles.get(str(ctx.guild.id))
+        if not role_id:
+            await ctx.send("No mute role set. Use `muterole create <name>` or `muterole set <@role>` first.")
+            return
+        role = ctx.guild.get_role(role_id)
+        if not role:
+            await ctx.send("Mute role not found. Please set it again.")
+            return
+        if role in member.roles:
+            await ctx.send(f"{member.mention} is already muted.")
+            return
+        try:
+            await member.add_roles(role, reason=reason or "Muted by command")
+            await ctx.send(f"🔇 {member.mention} has been muted. Reason: {reason or 'No reason provided.'}")
+        except discord.Forbidden:
+            await ctx.send("I do not have permission to add the mute role to this user.")
+        except Exception as e:
+            await ctx.send(f"Failed to mute: {e}")
+
+    @commands.command()
+    @commands.has_permissions(moderate_members=True)
+    async def unmute(self, ctx, member: discord.Member):
+        role_id = self.muteroles.get(str(ctx.guild.id))
+        if not role_id:
+            await ctx.send("No mute role set. Use `muterole create <name>` or `muterole set <@role>` first.")
+            return
+        role = ctx.guild.get_role(role_id)
+        if not role:
+            await ctx.send("Mute role not found. Please set it again.")
+            return
+        if role not in member.roles:
+            await ctx.send(f"{member.mention} is not muted.")
+            return
+        try:
+            await member.remove_roles(role, reason="Unmuted by command")
+            await ctx.send(f"🔊 {member.mention} has been unmuted.")
+        except discord.Forbidden:
+            await ctx.send("I do not have permission to remove the mute role from this user.")
+        except Exception as e:
+            await ctx.send(f"Failed to unmute: {e}")
 
 async def setup(bot):
     print("[MUTEROLE] Cog setup called.")

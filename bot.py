@@ -111,16 +111,35 @@ class ModuleSelect(ui.Select):
                 color=discord.Color.blurple()
             )
         elif selected.lower() == "moderation" and self.bot:
-            # List all moderation commands (including mute/unmute)
+            # List all moderation commands from muterole.py and moderation.py
             moderation_commands = [
-                ("ban", "Ban a user from the server."),
-                ("kick", "Kick a user from the server."),
-                ("mute", "Mute a user by assigning the mute role."),
-                ("unmute", "Unmute a user by removing the mute role."),
-                ("muterole", "Manage the mute role for this server."),
-                ("warn", "Warn a user (if implemented)."),
-                ("clear", "Clear messages (if implemented)."),
-                ("slowmode", "Set slowmode (if implemented)."),
+                ("muterole create <name>", "Create a mute role for the server."),
+                ("muterole set <@role>", "Set an existing role as the mute role."),
+                ("muterole remove", "Remove the mute role from the server."),
+                ("mute <member> [duration] [reason]", "Mute a member by assigning the mute role. Optionally specify a duration (e.g. 10m, 2h, 30s)."),
+                ("unmute <member>", "Unmute a member by removing the mute role."),
+                ("kick <member> [reason]", "Kicks a user from the server."),
+                ("ban <member> [reason]", "Bans a user from the server."),
+                ("unban <user_id>", "Unbans a user by their ID."),
+                ("warn <member> [reason]", "Warns a user (can be logged)."),
+                ("timeout <member> [time]", "Places user in timeout (Discord's native timeout)."),
+                ("slowmode <seconds>", "Sets slowmode delay in the current channel."),
+                ("clear <amount>", "Deletes a number of recent messages."),
+                ("purge <member> <amount>", "Deletes a specific number of messages from a user."),
+                ("lock", "Locks the current channel for @everyone."),
+                ("unlock", "Unlocks the current channel for @everyone."),
+                ("nuke", "Deletes and clones the current channel (wipes it clean)."),
+                ("role <member> <role_name>", "Adds a role to a user."),
+                ("derole <member> <role_name>", "Removes a role from a user."),
+                ("infractions <member>", "View a user's warning/mute/kick/ban history."),
+                ("modlog", "Displays the mod log channel or actions."),
+                ("blacklist <member>", "Blacklists a user from using commands."),
+                ("whitelist <member>", "Whitelists a user from moderation actions."),
+                ("antiinvite <toggle>", "Toggles anti-invite system."),
+                ("antilink <toggle>", "Blocks all non-whitelisted links."),
+                ("antispam <toggle>", "Enables automatic spam detection."),
+                ("antighostping <toggle>", "Detects ghost pings and notifies staff."),
+                ("automod", "Opens interactive panel to configure auto moderation."),
             ]
             commands_list = [f"`{name}`: {desc}" for name, desc in moderation_commands]
             embed = discord.Embed(
@@ -331,9 +350,19 @@ async def on_command_error(ctx, error):
         # Show usage/help for the command
         cmd = ctx.command
         usage = f"{DEFAULT_PREFIX}{cmd.qualified_name} {cmd.signature}" if cmd else ""
+        # Special case for mute command to show duration
+        if cmd and cmd.qualified_name == "mute":
+            usage = f"{DEFAULT_PREFIX}mute <member> [duration] [reason]"
+            desc = (
+                "Mute a member by assigning the mute role.\n"
+                "Optionally specify a duration (e.g. 10m, 2h, 30s).\n"
+                "Example: !mute @user 10m spamming"
+            )
+        else:
+            desc = cmd.help or ""
         embed = discord.Embed(
             title=f"Command {cmd.name if cmd else ''}",
-            description=cmd.help or "",
+            description=desc,
             color=discord.Color.orange()
         )
         if usage:

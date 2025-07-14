@@ -80,7 +80,15 @@ class MuteRole(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(moderate_members=True)
-    async def mute(self, ctx, member: discord.Member, *, reason: Optional[str] = None):
+    async def mute(self, ctx, member: discord.Member, duration: Optional[str] = None, *, reason: Optional[str] = None):
+        """
+        Mute a member by assigning the mute role.
+        Optionally specify a duration (e.g. 10m, 2h, 30s).
+        Usage: !mute @user [duration] [reason]
+        Example: !mute @user 10m spamming
+        """
+        import re
+        import asyncio
         role_id = self.muteroles.get(str(ctx.guild.id))
         if not role_id:
             await ctx.send("No mute role set. Use `muterole create <name>` or `muterole set <@role>` first.")
@@ -92,9 +100,43 @@ class MuteRole(commands.Cog):
         if role in member.roles:
             await ctx.send(f"{member.mention} is already muted.")
             return
+
+        # Parse duration
+        seconds = None
+        if duration:
+            match = re.match(r"^(\d+)([smhd])$", duration.strip().lower())
+            if match:
+                num, unit = match.groups()
+                num = int(num)
+                if unit == 's':
+                    seconds = num
+                elif unit == 'm':
+                    seconds = num * 60
+                elif unit == 'h':
+                    seconds = num * 60 * 60
+                elif unit == 'd':
+                    seconds = num * 60 * 60 * 24
+            else:
+                # If duration is not valid, treat as part of reason
+                reason = (duration + ' ' + (reason or '')).strip()
+                seconds = None
+
         try:
             await member.add_roles(role, reason=reason or "Muted by command")
-            await ctx.send(f"🔇 {member.mention} has been muted. Reason: {reason or 'No reason provided.'}")
+            msg = f"🔇 {member.mention} has been muted."
+            if seconds:
+                msg += f" Duration: {duration}"
+            msg += f" Reason: {reason or 'No reason provided.'}"
+            await ctx.send(msg)
+            if seconds:
+                await asyncio.sleep(seconds)
+                # Check if still muted and unmute
+                if role in member.roles:
+                    try:
+                        await member.remove_roles(role, reason="Timed mute expired")
+                        await ctx.send(f"🔊 {member.mention} has been automatically unmuted after {duration}.")
+                    except Exception:
+                        pass
         except discord.Forbidden:
             await ctx.send("I do not have permission to add the mute role to this user.")
         except Exception as e:

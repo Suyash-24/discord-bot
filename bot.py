@@ -38,11 +38,8 @@ def get_prefix(bot, message):
     guild_id = str(message.guild.id) if message.guild else None
     custom_prefix = prefix_db.get(guild_id, DEFAULT_PREFIX)
 
-    # Debug logging for prefix and no-prefix users
-    import logging
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("prefix_debug")
-
+    # Always return a flat list of prefixes (discord.py supports this)
+    # For no-prefix users, allow both prefix and no prefix
     def load_no_prefix_users():
         if os.path.exists("no_prefix_users.json"):
             with open("no_prefix_users.json", "r") as f:
@@ -50,13 +47,13 @@ def get_prefix(bot, message):
         return [1105502119731150858]
     no_prefix_users = load_no_prefix_users()
 
-    logger.info(f"[Prefix Debug] Message from {getattr(message.author, 'id', None)} ({getattr(message.author, 'name', None)}), guild: {guild_id}, custom_prefix: {custom_prefix}, no_prefix_users: {no_prefix_users}")
-
+    mention1 = f"<@!{bot.user.id}>"
+    mention2 = f"<@{bot.user.id}>"
+    prefixes = [custom_prefix, mention1, mention2]
     if message.author.id in no_prefix_users:
-        logger.info(f"[Prefix Debug] No-prefix user detected: {message.author.id}")
-        return (custom_prefix, "", f"<@!{bot.user.id}>", f"<@{bot.user.id}>")
-    logger.info(f"[Prefix Debug] Using normal prefix for user: {message.author.id}")
-    return (custom_prefix, f"<@!{bot.user.id}>", f"<@{bot.user.id}>")
+        # Allow no prefix (empty string) for these users
+        prefixes.insert(0, "")
+    return prefixes
 
 intents = discord.Intents.default()
 intents.message_content = True

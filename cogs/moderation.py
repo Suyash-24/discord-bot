@@ -77,7 +77,13 @@ class Moderation(commands.Cog):
     async def timeout(self, ctx, member: discord.Member, time: Optional[str] = None):
         """Places user in timeout (Discord's native timeout)."""
         # TODO: Implement timeout
-        await ctx.send(f"Timeout command for {member.mention} (time: {time}) is not yet implemented.")
+        embed = discord.Embed(
+            title="Timeout Not Implemented",
+            description=f"Timeout command for {member.mention} (time: {time}) is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -112,7 +118,13 @@ class Moderation(commands.Cog):
     async def purge(self, ctx, member: discord.Member, amount: int):
         """Deletes a specific number of messages from a user."""
         # TODO: Implement user-specific purge
-        await ctx.send(f"Purge command for {member.mention} (amount: {amount}) is not yet implemented.")
+        embed = discord.Embed(
+            title="Purge Not Implemented",
+            description=f"Purge command for {member.mention} (amount: {amount}) is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -178,6 +190,7 @@ class Moderation(commands.Cog):
             description="Are you sure you want to **nuke** this channel? This will **delete** and **recreate** the channel, wiping all messages.\n\nThis action cannot be undone!",
             color=discord.Color.red()
         )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
         prompt = await ctx.send(embed=embed, view=view)
         await view.wait()
         if view.value:
@@ -189,9 +202,12 @@ class Moderation(commands.Cog):
                 description=f"{new_channel.mention} has been nuked and recreated.",
                 color=discord.Color.red()
             )
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
             await new_channel.send(embed=embed)
         else:
-            await prompt.edit(embed=discord.Embed(title="Nuke Cancelled", description="The nuke command was cancelled.", color=discord.Color.green()), view=None)
+            cancel_embed = discord.Embed(title="Nuke Cancelled", description="The nuke command was cancelled.", color=discord.Color.green())
+            cancel_embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+            await prompt.edit(embed=cancel_embed, view=None)
 
     @commands.command()
     @commands.has_permissions(manage_roles=True)
@@ -230,56 +246,104 @@ class Moderation(commands.Cog):
     async def infractions(self, ctx, member: discord.Member):
         """View a user's warning/mute/kick/ban history."""
         # TODO: Implement infractions log
-        await ctx.send(f"Infractions command for {member.mention} is not yet implemented.")
+        embed = discord.Embed(
+            title="Infractions Not Implemented",
+            description=f"Infractions command for {member.mention} is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def modlog(self, ctx):
         """Displays the mod log channel or actions."""
         # TODO: Implement modlog
-        await ctx.send("Modlog command is not yet implemented.")
+        embed = discord.Embed(
+            title="Modlog Not Implemented",
+            description="Modlog command is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def blacklist(self, ctx, member: discord.Member):
         """Blacklists a user from using commands."""
         # TODO: Implement blacklist
-        await ctx.send(f"Blacklist command for {member.mention} is not yet implemented.")
+        embed = discord.Embed(
+            title="Blacklist Not Implemented",
+            description=f"Blacklist command for {member.mention} is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def whitelist(self, ctx, member: discord.Member):
         """Whitelists a user from moderation actions."""
         # TODO: Implement whitelist
-        await ctx.send(f"Whitelist command for {member.mention} is not yet implemented.")
+        embed = discord.Embed(
+            title="Whitelist Not Implemented",
+            description=f"Whitelist command for {member.mention} is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def antiinvite(self, ctx, toggle: str):
         """Toggles anti-invite system."""
         # TODO: Implement antiinvite
-        await ctx.send(f"Antiinvite command with toggle `{toggle}` is not yet implemented.")
+        embed = discord.Embed(
+            title="Antiinvite Not Implemented",
+            description=f"Antiinvite command with toggle `{toggle}` is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def antilink(self, ctx, toggle: str):
         """Blocks all non-whitelisted links."""
         # TODO: Implement antilink
-        await ctx.send(f"Antilink command with toggle `{toggle}` is not yet implemented.")
+        embed = discord.Embed(
+            title="Antilink Not Implemented",
+            description=f"Antilink command with toggle `{toggle}` is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def antispam(self, ctx, toggle: str):
         """Enables automatic spam detection."""
         # TODO: Implement antispam
-        await ctx.send(f"Antispam command with toggle `{toggle}` is not yet implemented.")
+        embed = discord.Embed(
+            title="Antispam Not Implemented",
+            description=f"Antispam command with toggle `{toggle}` is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def antighostping(self, ctx, toggle: str):
         """Detects ghost pings and notifies staff."""
         # TODO: Implement antighostping
-        await ctx.send(f"Antighostping command with toggle `{toggle}` is not yet implemented.")
+        embed = discord.Embed(
+            title="Antighostping Not Implemented",
+            description=f"Antighostping command with toggle `{toggle}` is not yet implemented.",
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        await ctx.send(embed=embed)
 
 
     # ...existing code...

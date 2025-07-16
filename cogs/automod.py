@@ -18,14 +18,36 @@ class Automod(commands.Cog):
             except Exception:
                 pass
 
-        async def do_mute():
+        async def do_mute(feature):
             # Try to find mute role
             mute_role = discord.utils.get(message.guild.roles, name="Muted")
-            if mute_role and mute_role not in member.roles:
+            if not mute_role:
+                embed = discord.Embed(
+                    title="Mute Role Not Found",
+                    description="No mute role named 'Muted' found. Please set up a mute role for automod to work.",
+                    color=discord.Color.red()
+                )
+                embed.set_footer(text=f"Requested by {message.author.display_name}", icon_url=message.author.display_avatar.url if hasattr(message.author, 'display_avatar') else message.author.avatar.url if message.author.avatar else None)
+                await message.channel.send(embed=embed)
+                return
+            if mute_role not in member.roles:
                 try:
-                    await member.add_roles(mute_role, reason="Automod mute")
+                    await member.add_roles(mute_role, reason=f"Automod mute ({feature})")
+                    embed = discord.Embed(
+                        title="User Muted",
+                        description=f"{member.mention} has been muted for **{feature.replace('_',' ').title()}**.",
+                        color=discord.Color.blurple()
+                    )
+                    embed.set_footer(text=f"Requested by {message.author.display_name}", icon_url=message.author.display_avatar.url if hasattr(message.author, 'display_avatar') else message.author.avatar.url if message.author.avatar else None)
+                    await message.channel.send(embed=embed)
                 except Exception:
-                    pass
+                    embed = discord.Embed(
+                        title="Mute Failed",
+                        description=f"Failed to mute {member.mention} for **{feature.replace('_',' ').title()}**.",
+                        color=discord.Color.red()
+                    )
+                    embed.set_footer(text=f"Requested by {message.author.display_name}", icon_url=message.author.display_avatar.url if hasattr(message.author, 'display_avatar') else message.author.avatar.url if message.author.avatar else None)
+                    await message.channel.send(embed=embed)
 
         # Feature checks
         content = message.content
@@ -94,7 +116,7 @@ class Automod(commands.Cog):
             if actions.get('warn'):
                 await do_warn(feature)
             if actions.get('mute'):
-                await do_mute()
+                await do_mute(feature)
 
     # In-memory config: {guild_id: {feature: {'delete': bool, 'warn': bool, 'mute': bool}}}
     automod_config = {}

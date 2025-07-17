@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from discord.utils import get
+from datetime import timedelta
+import  datetime 
+from typing import Optional  
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
@@ -86,26 +89,28 @@ class Moderation(commands.Cog):
         await ctx.send(f"🐢 Slowmode set to {seconds} seconds.")
 
     # Timeout
+    
+
     @commands.command()
     @commands.has_permissions(moderate_members=True)
-    async def timeout(self, ctx, member: discord.Member, seconds: int, *, reason=None):
-        duration = discord.utils.utcnow() + discord.timedelta(seconds=seconds)
-        await member.timeout(until=duration, reason=reason)
-        await ctx.send(f"⏳ {member.mention} has been timed out for {seconds} seconds.")
+    async def timeout(self, ctx, member: discord.Member, seconds: int, *, reason: str = "No reason provided"):
+        until = discord.utils.utcnow() + datetime.timedelta(seconds=seconds)
+        await member.edit(timed_out_until=until, reason=reason)
+        await ctx.send(f"⏱️ {member.mention} has been timed out for `{seconds}` seconds.")
 
-    # Untimeout
+    # Untimeout Command
     @commands.command()
     @commands.has_permissions(moderate_members=True)
     async def untimeout(self, ctx, member: discord.Member):
-        await member.timeout(until=None)
+        await member.edit(timed_out_until=None)
         await ctx.send(f"✅ {member.mention}'s timeout has been removed.")
-
-    # Change Nickname
+        
+    # Nickname Change
     @commands.command()
     @commands.has_permissions(manage_nicknames=True)
-    async def nickname(self, ctx, member: discord.Member, *, nickname: str = None):
+    async def nickname(self, ctx, member: discord.Member, *, nickname: Optional[str] = None):
         await member.edit(nick=nickname)
-        await ctx.send(f"✏️ Nickname changed to `{nickname}` for {member.mention}")
+        await ctx.send(f"📝 Nickname changed to `{nickname}` for {member.mention}")
 
     # Add Role
     @commands.command()

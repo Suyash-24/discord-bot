@@ -5,10 +5,13 @@ import asyncio
 from dotenv import load_dotenv
 import json
 
-load_dotenv(dotenv_path=".env")
-TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+load_dotenv()
+BOT_TOKEN = os.getenv("TOKEN")
 
-def get_prefix(bot, message):
+if BOT_TOKEN is None:
+    raise ValueError("TOKEN is not set. Please check your environment variables.")
+
+def get_prefix(_, message):
     try:
         with open("data/prefixes.json", "r") as f:
             prefixes = json.load(f)
@@ -34,7 +37,7 @@ async def main():
         await bot.load_extension("cogs.automod")
         await bot.load_extension("cogs.events")
         await bot.load_extension("cogs.muterole")
-        await bot.load_extension("cogs.help")
-        await bot.start(TOKEN)
-
+        await bot.load_extension("cogs.help_command")
+       
 asyncio.run(main())
+bot.run(BOT_TOKEN)

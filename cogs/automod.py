@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import ui
 
+
 class Automod(commands.Cog):
     async def on_message(self, message):
         if not message.guild or message.author.bot:
@@ -14,12 +15,18 @@ class Automod(commands.Cog):
         # Helper functions
         async def do_warn(feature):
             try:
-                await message.channel.send(f"{member.mention}, you triggered automod: **{feature.replace('_',' ').title()}**.", delete_after=8)
+                embed = discord.Embed(
+                    title="Automod Warning",
+                    description=f"{member.mention}, you triggered automod: **{feature.replace('_',' ').title()}**.",
+                    color=discord.Color.orange()
+                )
+                embed.set_footer(text=f"Requested by {message.author.display_name}", icon_url=message.author.display_avatar.url if hasattr(message.author, 'display_avatar') else message.author.avatar.url if message.author.avatar else None)
+                embed.timestamp = discord.utils.utcnow()
+                await message.channel.send(embed=embed, delete_after=8)
             except Exception:
                 pass
 
         async def do_mute(feature):
-            # Try to find mute role
             mute_role = discord.utils.get(message.guild.roles, name="Muted")
             if not mute_role:
                 embed = discord.Embed(
@@ -28,6 +35,7 @@ class Automod(commands.Cog):
                     color=discord.Color.red()
                 )
                 embed.set_footer(text=f"Requested by {message.author.display_name}", icon_url=message.author.display_avatar.url if hasattr(message.author, 'display_avatar') else message.author.avatar.url if message.author.avatar else None)
+                embed.timestamp = discord.utils.utcnow()
                 await message.channel.send(embed=embed)
                 return
             if mute_role not in member.roles:
@@ -39,6 +47,7 @@ class Automod(commands.Cog):
                         color=discord.Color.blurple()
                     )
                     embed.set_footer(text=f"Requested by {message.author.display_name}", icon_url=message.author.display_avatar.url if hasattr(message.author, 'display_avatar') else message.author.avatar.url if message.author.avatar else None)
+                    embed.timestamp = discord.utils.utcnow()
                     await message.channel.send(embed=embed)
                 except Exception:
                     embed = discord.Embed(
@@ -47,10 +56,12 @@ class Automod(commands.Cog):
                         color=discord.Color.red()
                     )
                     embed.set_footer(text=f"Requested by {message.author.display_name}", icon_url=message.author.display_avatar.url if hasattr(message.author, 'display_avatar') else message.author.avatar.url if message.author.avatar else None)
+                    embed.timestamp = discord.utils.utcnow()
                     await message.channel.send(embed=embed)
 
         # Feature checks
         content = message.content
+        import re
         # antiinvite
         if config.get('antiinvite', {}).get('delete') and ("discord.gg/" in content or "discord.com/invite/" in content):
             triggered_features.append('antiinvite')
@@ -63,10 +74,7 @@ class Automod(commands.Cog):
         # antimention (mass mention)
         if config.get('antimention', {}).get('delete') and (len(message.mentions) >= 5):
             triggered_features.append('antimention')
-        # antighostping (mention then delete)
-        # This needs message delete tracking, so skip for now
         # antitoken (discord token regex)
-        import re
         token_regex = r"[MN][A-Za-z\d]{23}\.[\w-]{6}\.[\w-]{27}"
         if config.get('antitoken', {}).get('delete') and re.search(token_regex, content):
             triggered_features.append('antitoken')
@@ -85,8 +93,6 @@ class Automod(commands.Cog):
         zalgo_chars = [chr(i) for i in range(0x0300, 0x036F)]
         if config.get('antizalgo', {}).get('delete') and any(c in zalgo_chars for c in content):
             triggered_features.append('antizalgo')
-        # antidupe (duplicate messages)
-        # Needs message history, skip for now
         # antiwords (custom block words)
         block_words = ["badword1", "badword2"] # You can make this configurable
         if config.get('antiwords', {}).get('delete') and any(w in content.lower() for w in block_words):
@@ -143,11 +149,12 @@ class Automod(commands.Cog):
             f"**Mute User:** {'🟢 Enabled' if actions['mute'] else '🔴 Disabled'}\n"
         )
         embed = discord.Embed(
-            title=f"Automod: {feature.replace('_',' ').title()} Settings",
+            title=f"🛡️ Automod: {feature.replace('_',' ').title()} Settings",
             description=desc,
             color=discord.Color.blurple()
         )
         embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        embed.timestamp = discord.utils.utcnow()
         return embed
 
     @commands.group(invoke_without_command=True)
@@ -298,33 +305,35 @@ class Automod(commands.Cog):
             @ui.button(label="Toggle Anti-Invite", style=discord.ButtonStyle.primary, custom_id="anti_invite")
             async def toggle_invite(self, interaction: discord.Interaction, button: ui.Button):
                 self.anti_invite = not self.anti_invite
-                await interaction.response.edit_message(embed=self.make_embed(), view=self)
+                await interaction.response.edit_message(embed=self.make_embed(interaction.user), view=self)
 
             @ui.button(label="Toggle Anti-Link", style=discord.ButtonStyle.primary, custom_id="anti_link")
             async def toggle_link(self, interaction: discord.Interaction, button: ui.Button):
                 self.anti_link = not self.anti_link
-                await interaction.response.edit_message(embed=self.make_embed(), view=self)
+                await interaction.response.edit_message(embed=self.make_embed(interaction.user), view=self)
 
             @ui.button(label="Toggle Anti-Spam", style=discord.ButtonStyle.primary, custom_id="anti_spam")
             async def toggle_spam(self, interaction: discord.Interaction, button: ui.Button):
                 self.anti_spam = not self.anti_spam
-                await interaction.response.edit_message(embed=self.make_embed(), view=self)
+                await interaction.response.edit_message(embed=self.make_embed(interaction.user), view=self)
 
-            def make_embed(self):
+            def make_embed(self, user):
                 desc = (
                     f"**Anti-Invite:** {'🟢 Enabled' if self.anti_invite else '🔴 Disabled'}\n"
                     f"**Anti-Link:** {'🟢 Enabled' if self.anti_link else '🔴 Disabled'}\n"
                     f"**Anti-Spam:** {'🟢 Enabled' if self.anti_spam else '🔴 Disabled'}\n"
                 )
                 embed = discord.Embed(
-                    title="Automod Panel",
+                    title="🛡️ Automod Panel",
                     description=desc,
                     color=discord.Color.blurple()
                 )
+                embed.set_footer(text=f"Requested by {user.display_name}", icon_url=user.display_avatar.url if hasattr(user, 'display_avatar') else user.avatar.url if user.avatar else None)
+                embed.timestamp = discord.utils.utcnow()
                 return embed
 
         view = AutomodPanel()
-        embed = view.make_embed()
+        embed = view.make_embed(ctx.author)
         await ctx.send(embed=embed, view=view)
 
 async def setup(bot):

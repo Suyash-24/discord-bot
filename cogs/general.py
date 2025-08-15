@@ -1,230 +1,542 @@
-
 import discord
+import typing
 from discord.ext import commands
+from discord import app_commands
+from datetime import datetime
 from typing import Optional
 
 class General(commands.Cog):
-    """General commands for everyone."""
     def __init__(self, bot):
         self.bot = bot
 
-
-    @commands.command()
-    async def about(self, ctx):
-        """Show info about the bot."""
-        bot = self.bot
-        # Bot stats
-        total_guilds = len(bot.guilds)
-        total_users = sum(guild.member_count or 0 for guild in bot.guilds)
-        total_text_channels = sum(len([c for c in guild.channels if isinstance(c, discord.TextChannel)]) for guild in bot.guilds)
-        total_voice_channels = sum(len([c for c in guild.channels if isinstance(c, discord.VoiceChannel)]) for guild in bot.guilds)
-        # Uptime
-        import datetime
-        now = datetime.datetime.utcnow()
-        if not hasattr(bot, 'start_time'):
-            bot.start_time = now
-        uptime = now - bot.start_time
-        restart_time = (now - uptime).strftime('%-m/%-d/%Y %I:%M %p') if hasattr(now, 'strftime') else 'N/A'
-
-        # Main description
-        # Set your Discord username here (change as needed)
-        owner_name = "haun1edd."  # <-- Replace with your Discord username/tag
-        description = (
-            f"Hello, I am **{bot.user}**, a bot designed to help you manage, secure, and have fun in your server!\n"
-            f"I was built by **{owner_name}**.\n"
-            f"Type `{ctx.prefix}help` for help and information.\n"
-        )
-
+    # -------------------- PING --------------------
+    @commands.command(name="ping")
+    async def ping_command(self, ctx):
+        """Shows bot latency (prefix version)"""
+        latency = round(self.bot.latency * 1000)
         embed = discord.Embed(
-            title=f"All about {bot.user.display_name}",
-            description=description,
-            color=discord.Color.blurple()
+            title="🏓 Pong!",
+            description=f"Latency: `{latency}ms`",
+            color=discord.Color.blurple(),
+            timestamp=datetime.utcnow()
         )
-        # Thumbnail/icon
-        if bot.user.avatar:
-            embed.set_thumbnail(url=bot.user.avatar.url)
-        # Stats section
-        stats = (
-            f"**Stats**\n"
-            f"Servers: `{total_guilds}`\n"
-            f"Users: `{total_users}`\n"
-            f"Text Channels: `{total_text_channels}`\n"
-            f"Voice Channels: `{total_voice_channels}`\n"
-        )
-        embed.add_field(name="\u200b", value=stats, inline=False)
-        # Uptime/Restart
-        embed.set_footer(text=f"Last restart • {restart_time} | Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar.url)
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def userinfo(self, ctx, member: Optional[discord.Member] = None):
-        """Show info about a user."""
-        member = member or ctx.author
-        is_guild_member = isinstance(member, discord.Member)
-        display_name = member.display_name if is_guild_member else member.name
-        mention = member.mention
-        avatar_url = member.display_avatar.url if hasattr(member, 'display_avatar') else member.avatar.url if member.avatar else None
-
-        # Dates
-        joined = member.joined_at.strftime('%a, %b %d, %Y %I:%M %p') if is_guild_member and member.joined_at else "N/A"
-        created = member.created_at.strftime('%a, %b %d, %Y %I:%M %p')
-
-        # Roles
-        roles = []
-        if is_guild_member:
-            roles = [role for role in member.roles if role.name != "@everyone"]
-            roles_sorted = sorted(roles, key=lambda r: r.position, reverse=True)
-            roles_display = " ".join([role.mention for role in roles_sorted[:10]])
-            if len(roles_sorted) > 10:
-                roles_display += f" and {len(roles_sorted)-10} more..."
-            roles_field = f"{roles_display}" if roles_display else "None"
-        else:
-            roles_field = "N/A"
-
-        # Permissions
-        key_perms = []
-        if is_guild_member:
-            perms = member.guild_permissions
-            perm_names = [
-                ("Administrator", perms.administrator),
-                ("Manage Server", perms.manage_guild),
-                ("Manage Roles", perms.manage_roles),
-                ("Manage Channels", perms.manage_channels),
-                ("Manage Messages", perms.manage_messages),
-                ("Manage Webhooks", perms.manage_webhooks),
-                ("Manage Nicknames", perms.manage_nicknames),
-                ("Manage Emojis and Stickers", perms.manage_emojis_and_stickers),
-                ("Kick Members", perms.kick_members),
-                ("Ban Members", perms.ban_members),
-                ("Mention Everyone", perms.mention_everyone),
-                ("Timeout Members", getattr(perms, 'moderate_members', False)),
-            ]
-            key_perms = [name for name, has in perm_names if has]
-        perms_field = ", ".join(key_perms) if key_perms else "None"
-
-        # Acknowledgements
-        acknowledgements = []
-        if is_guild_member:
-            if member.guild.owner_id == member.id:
-                acknowledgements.append("Server Owner")
-            if member.guild_permissions.administrator:
-                acknowledgements.append("Server Admin")
-        if member.bot:
-            acknowledgements.append("Bot")
-        ack_field = ", ".join(acknowledgements) if acknowledgements else "None"
-
-        # Build embed
+    @app_commands.command(name="ping", description="Shows bot latency")
+    async def ping_slash(self, interaction: discord.Interaction):
+        latency = round(self.bot.latency * 1000)
         embed = discord.Embed(
-            color=member.color if is_guild_member and member.color.value else discord.Color.blurple(),
-            description=f"{mention}"
+            title="🏓 Pong!",
+            description=f"Latency: `{latency}ms`",
+            color=discord.Color.blurple(),
+            timestamp=datetime.utcnow()
         )
-        embed.set_author(name=display_name, icon_url=avatar_url)
-        embed.set_thumbnail(url=avatar_url)
-        embed.add_field(name="Joined", value=joined, inline=True)
-        embed.add_field(name="Registered", value=created, inline=True)
-        embed.add_field(name=f"Roles [{len(roles)}]", value=roles_field, inline=False)
-        if perms_field != "None":
-            embed.add_field(name="Key Permissions", value=perms_field, inline=False)
-        if ack_field != "None":
-            embed.add_field(name="Acknowledgements", value=ack_field, inline=False)
-        embed.add_field(name="ID", value=f"`{member.id}`", inline=False)
-        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
-        # Show banner at bottom if available, else nothing
-        if hasattr(member, 'banner') and member.banner:
-            embed.set_image(url=member.banner.url)
-        await ctx.send(embed=embed)
+        embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @commands.command()
-    async def serverinfo(self, ctx):
-        """Show info about the server."""
+    # -------------------- SERVER INFO --------------------
+    @commands.command(name="serverinfo")
+    async def serverinfo_command(self, ctx):
+        """Shows detailed information about the current server (prefix version)"""
         guild = ctx.guild
-        features = {
-            "Server Discovery": "Server Discovery" in guild.features,
-            "Invite Splash": "INVITE_SPLASH" in guild.features,
-            "Vanity Invite": "VANITY_URL" in guild.features,
-            "News Channels": "NEWS" in guild.features,
-            "Animated Icon": "ANIMATED_ICON" in guild.features,
-            "Banner": bool(guild.banner)
-        }
-        feature_text = "\n".join([
-            f"{'✅' if v else '❌'} {k}" for k, v in features.items()
-        ])
-
-        # Channels
-        text_channels = len([c for c in guild.channels if isinstance(c, discord.TextChannel)])
-        voice_channels = len([c for c in guild.channels if isinstance(c, discord.VoiceChannel)])
-        locked_text = len([c for c in guild.text_channels if c.overwrites_for(guild.default_role).read_messages is False])
-        locked_voice = len([c for c in guild.voice_channels if c.overwrites_for(guild.default_role).connect is False])
-
-        # Info
-        scanning = "✅ Scanning Images" if "COMMUNITY" in guild.features else "❌ Scanning Images"
-        verification = f"Verification level: {str(guild.verification_level)}"
-        icon_link = f"[Icon link]({guild.icon.url})" if guild.icon else "No icon"
-
-        # Prefixes (show all, or just main one)
-        # Use bot's get_prefix function to get the current prefix for this guild
-        prefix = None
-        if hasattr(self.bot, 'command_prefix'):
-            # command_prefix can be a function or a string
-            if callable(self.bot.command_prefix):
-                # Simulate a message object for get_prefix
-                class Dummy:
-                    def __init__(self, guild):
-                        self.guild = guild
-                        self.author = ctx.author
-                prefixes = self.bot.command_prefix(self.bot, Dummy(guild))
-                if isinstance(prefixes, (list, tuple)):
-                    prefix = prefixes[0]
-                else:
-                    prefix = prefixes
-            else:
-                prefix = self.bot.command_prefix
-        if not prefix:
-            prefix = '!'
-        prefix_display = f"`{prefix}`"
-
-        # Members
-        total = guild.member_count
+        if not guild:
+            await ctx.send("This command can only be used in a server.")
+            return
+        owner = guild.owner
         humans = len([m for m in guild.members if not m.bot])
         bots = len([m for m in guild.members if m.bot])
-
-        # Roles
+        categories = len([c for c in guild.channels if isinstance(c, discord.CategoryChannel)])
+        text_channels = len([c for c in guild.channels if isinstance(c, discord.TextChannel)])
+        voice_channels = len([c for c in guild.channels if isinstance(c, discord.VoiceChannel)])
+        threads = len(guild.threads)
+        emojis = len(guild.emojis)
+        stickers = len(getattr(guild, 'stickers', []))
+        features = guild.features
         roles = len(guild.roles)
-
-        # Boosts
-        boost_level = f"Level {guild.premium_tier} (maxed)" if guild.premium_tier == 3 else f"Level {guild.premium_tier}"
-
-        embed = discord.Embed(
-            title=f"Info for {guild.name} ",
-            color=discord.Color.blurple()
+        boost_level = guild.premium_tier
+        boosts = guild.premium_subscription_count
+        booster_role = discord.utils.get(guild.roles, name="Booster")
+        created_at = guild.created_at.strftime("%A, %B %d, %Y %I:%M %p")
+        # About Section
+        about = (
+            f"**Server Name:** {guild.name}\n"
+            f"**Server ID:** {guild.id}\n"
+            f"**Owner :** {owner.mention if owner else 'Unknown'}\n"
+            f"**Created At:** {created_at}\n"
+            f"**Members:** {guild.member_count}\n"
+            f"**Roles:** {roles}\n"
+            f"**Verification Level:** {guild.verification_level.name.title()}\n"
         )
-        embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
+        # Description
+        description = guild.description or "Welcome to {0}".format(guild.name)
+        # Features
+        feature_map = {
+            "GUILD_ONBOARDING": "Guild Onboarding",
+            "INVITE_SPLASH": "Invite Splash",
+            "VIP_REGIONS": "VIP Regions",
+            "VANITY_URL": "Vanity URL",
+            "ANIMATED_ICON": "Animated Icon",
+            "DISCOVERABLE": "Discoverable",
+            "PREVIEW_ENABLED": "Preview Enabled",
+            "COMMUNITY": "Community",
+            "BANNER": "Banner",
+            "TIER_1": "Tier 1 Boost",
+            "TIER_2": "Tier 2 Boost",
+            "TIER_3": "Tier 3 Boost",
+            "NEWS": "News Channels",
+            "PARTNERED": "Partnered",
+            "COMMERCE": "Commerce",
+            "ENABLED_DISCOVERABLE_BEFORE": "Enabled Discoverable Before",
+            "GUILD_ONBOARDING_HAS_PROMPTS": "Guild Onboarding Has Prompts",
+            "AUTO_MODERATION": "Auto Moderation",
+            "MORE_EMOJI": "More Emojis",
+            "MORE_STICKERS": "More Stickers",
+            "TIER_1": "Tier 1 Boost",
+            "TIER_2": "Tier 2 Boost",
+            "TIER_3": "Tier 3 Boost",
+            "TIER_4": "Tier 4 Boost",
+            "TIER_5": "Tier 5 Boost",
+            "TIER_6": "Tier 6 Boost",
+            "TIER_7": "Tier 7 Boost",
+            "TIER_8": "Tier 8 Boost",
+            "TIER_9": "Tier 9 Boost",
+            "TIER_10": "Tier 10 Boost",
+        }
+        features_list = [f"✅ {feature_map.get(f, f.replace('_', ' ').title())}" for f in features]
+        features_str = "\n".join(features_list) if features_list else "No special features."
+        # Members/Channels/Emojis/Boosts
+        member_info = f"**Members:** {guild.member_count}\n**Humans:** {humans}\n**Bots:** {bots}"
+        channel_info = f"**Categories:** {categories}\n**Text Channels:** {text_channels}\n**Voice Channels:** {voice_channels}\n**Threads:** {threads}"
+        emoji_info = f"**Regular Emojis:** {emojis}\n**Stickers:** {stickers}\n**Total Emoji/Stickers:** {emojis + stickers}"
+        boost_info = f"**Level:** {boost_level} [ {boosts} Boosts ]\n**Booster Role:** {booster_role.mention if booster_role else 'N/A'}"
+        # Build Embeds (split for Discord limits)
+        embeds = []
+        # About/Description/Features
+        embed1 = discord.Embed(title=f"{guild.name} • Information", color=discord.Color.blurple(), timestamp=datetime.utcnow())
+        embed1.set_thumbnail(url=guild.icon.url if guild.icon else None)
+        embed1.add_field(name="About(s)", value=about, inline=False)
+        embed1.add_field(name="Description(s)", value=description, inline=False)
+        embed1.add_field(name="Feature(s)", value=features_str, inline=False)
+        embeds.append(embed1)
+        # Members/Channels/Emojis/Boosts
+        embed2 = discord.Embed(title=f"{guild.name} • Stats", color=discord.Color.blurple(), timestamp=datetime.utcnow())
+        embed2.add_field(name="Member(s)", value=member_info, inline=False)
+        embed2.add_field(name="Channel(s)", value=channel_info, inline=False)
+        embed2.add_field(name="Emoji Info(s)", value=emoji_info, inline=False)
+        embed2.add_field(name="Boost Status(s)", value=boost_info, inline=False)
+        embeds.append(embed2)
+        # Server Banner/Image
         if guild.banner:
-            embed.set_image(url=guild.banner.url)
-        embed.add_field(name="Owner", value=guild.owner, inline=True)
-        embed.add_field(name="Features", value=feature_text, inline=True)
-        embed.add_field(name="Boosts", value=boost_level, inline=True)
-        embed.add_field(name="Channels", value=f"# {text_channels} ({locked_text} locked)\n\U0001F50A {voice_channels} ({locked_voice} locked)", inline=True)
-        embed.add_field(name="Info", value=f"{scanning}\n{verification}\n{icon_link}", inline=True)
-        embed.add_field(name="Prefixes", value=prefix_display, inline=True)
-        embed.add_field(name="Members", value=f"Total: {total}\nHumans: {humans}\nBots: {bots}", inline=True)
-        embed.add_field(name="Roles", value=f"{roles} roles", inline=True)
-        embed.add_field(name="ID", value=guild.id, inline=True)
-        embed.add_field(name="Created", value=f"<t:{int(guild.created_at.timestamp())}:f>", inline=True)
-        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
-        await ctx.send(embed=embed)
+            embed3 = discord.Embed(title=f"{guild.name} • Banner", color=discord.Color.blurple(), timestamp=datetime.utcnow())
+            embed3.set_image(url=guild.banner.url)
+            embeds.append(embed3)
+        # Send all embeds
+        for i, em in enumerate(embeds):
+            await ctx.send(embed=em)
 
-    @commands.command(aliases=["av", "pfp"])
-    async def avatar(self, ctx, member: Optional[discord.Member] = None):
-        """Show a user's avatar."""
+    @app_commands.command(name="serverinfo", description="Shows information about the server")
+    async def serverinfo_slash(self, interaction: discord.Interaction):
+        guild = interaction.guild
+        if not guild:
+            return await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
+        owner = guild.owner
+        humans = len([m for m in guild.members if not m.bot])
+        bots = len([m for m in guild.members if m.bot])
+        categories = len([c for c in guild.channels if isinstance(c, discord.CategoryChannel)])
+        text_channels = len([c for c in guild.channels if isinstance(c, discord.TextChannel)])
+        voice_channels = len([c for c in guild.channels if isinstance(c, discord.VoiceChannel)])
+        threads = len(guild.threads)
+        emojis = len(guild.emojis)
+        stickers = len(getattr(guild, 'stickers', []))
+        features = guild.features
+        roles = len(guild.roles)
+        boost_level = guild.premium_tier
+        boosts = guild.premium_subscription_count
+        booster_role = discord.utils.get(guild.roles, name="Booster")
+        created_at = guild.created_at.strftime("%A, %B %d, %Y %I:%M %p")
+        about = (
+            f"**Server Name:** {guild.name}\n"
+            f"**Server ID:** {guild.id}\n"
+            f"**Owner :** {owner.mention if owner else 'Unknown'}\n"
+            f"**Created At:** {created_at}\n"
+            f"**Members:** {guild.member_count}\n"
+            f"**Roles:** {roles}\n"
+            f"**Verification Level:** {guild.verification_level.name.title()}\n"
+        )
+        description = guild.description or "Welcome to {0}".format(guild.name)
+        feature_map = {
+            "GUILD_ONBOARDING": "Guild Onboarding",
+            "INVITE_SPLASH": "Invite Splash",
+            "VIP_REGIONS": "VIP Regions",
+            "VANITY_URL": "Vanity URL",
+            "ANIMATED_ICON": "Animated Icon",
+            "DISCOVERABLE": "Discoverable",
+            "PREVIEW_ENABLED": "Preview Enabled",
+            "COMMUNITY": "Community",
+            "BANNER": "Banner",
+            "TIER_1": "Tier 1 Boost",
+            "TIER_2": "Tier 2 Boost",
+            "TIER_3": "Tier 3 Boost",
+            "NEWS": "News Channels",
+            "PARTNERED": "Partnered",
+            "COMMERCE": "Commerce",
+            "ENABLED_DISCOVERABLE_BEFORE": "Enabled Discoverable Before",
+            "GUILD_ONBOARDING_HAS_PROMPTS": "Guild Onboarding Has Prompts",
+            "AUTO_MODERATION": "Auto Moderation",
+            "MORE_EMOJI": "More Emojis",
+            "MORE_STICKERS": "More Stickers",
+            "TIER_1": "Tier 1 Boost",
+            "TIER_2": "Tier 2 Boost",
+            "TIER_3": "Tier 3 Boost",
+            "TIER_4": "Tier 4 Boost",
+            "TIER_5": "Tier 5 Boost",
+            "TIER_6": "Tier 6 Boost",
+            "TIER_7": "Tier 7 Boost",
+            "TIER_8": "Tier 8 Boost",
+            "TIER_9": "Tier 9 Boost",
+            "TIER_10": "Tier 10 Boost",
+        }
+        features_list = [f"✅ {feature_map.get(f, f.replace('_', ' ').title())}" for f in features]
+        features_str = "\n".join(features_list) if features_list else "No special features."
+        member_info = f"**Members:** {guild.member_count}\n**Humans:** {humans}\n**Bots:** {bots}"
+        channel_info = f"**Categories:** {categories}\n**Text Channels:** {text_channels}\n**Voice Channels:** {voice_channels}\n**Threads:** {threads}"
+        emoji_info = f"**Regular Emojis:** {emojis}\n**Stickers:** {stickers}\n**Total Emoji/Stickers:** {emojis + stickers}"
+        boost_info = f"**Level:** {boost_level} [ {boosts} Boosts ]\n**Booster Role:** {booster_role.mention if booster_role else 'N/A'}"
+        embeds = []
+        embed1 = discord.Embed(title=f"{guild.name} • Information", color=discord.Color.blurple(), timestamp=datetime.utcnow())
+        embed1.set_thumbnail(url=guild.icon.url if guild.icon else None)
+        embed1.add_field(name="About(s)", value=about, inline=False)
+        embed1.add_field(name="Description(s)", value=description, inline=False)
+        embed1.add_field(name="Feature(s)", value=features_str, inline=False)
+        embeds.append(embed1)
+        embed2 = discord.Embed(title=f"{guild.name} • Stats", color=discord.Color.blurple(), timestamp=datetime.utcnow())
+        embed2.add_field(name="Member(s)", value=member_info, inline=False)
+        embed2.add_field(name="Channel(s)", value=channel_info, inline=False)
+        embed2.add_field(name="Emoji Info(s)", value=emoji_info, inline=False)
+        embed2.add_field(name="Boost Status(s)", value=boost_info, inline=False)
+        embeds.append(embed2)
+        if guild.banner:
+            embed3 = discord.Embed(title=f"{guild.name} • Banner", color=discord.Color.blurple(), timestamp=datetime.utcnow())
+            embed3.set_image(url=guild.banner.url)
+            embeds.append(embed3)
+        # Send all embeds as a followup (ephemeral)
+        await interaction.response.send_message(embed=embeds[0], ephemeral=True)
+        for em in embeds[1:]:
+            await interaction.followup.send(embed=em, ephemeral=True)
+
+    # -------------------- USER INFO --------------------
+    @commands.command(name="userinfo")
+    async def userinfo_command(self, ctx, member: Optional[discord.Member] = None):
+        """Shows information about a user (prefix version)"""
+        member = member or ctx.author
+        if not member:
+            await ctx.send("User not found.")
+            return
+        embed = discord.Embed(
+            title=f"👤 User Info - {member}",
+            color=discord.Color.green(),
+            timestamp=datetime.utcnow(),
+            description=f"Info for {member.mention}"
+        )
+        embed.set_thumbnail(url=member.avatar.url if member.avatar else None)
+        embed.add_field(name="🆔 ID", value=member.id, inline=True)
+        joined_at = "N/A"
+        if getattr(member, 'joined_at', None) is not None and member.joined_at:
+            try:
+                joined_at = member.joined_at.strftime("%Y-%m-%d %H:%M:%S")
+            except Exception:
+                joined_at = "N/A"
+        embed.add_field(name="📥 Joined Server", value=joined_at, inline=True)
+        embed.add_field(name="📆 Account Created", value=member.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+        embed.add_field(name="🎭 Roles", value=", ".join([role.mention for role in member.roles[1:]]) or "None", inline=False)
+        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar.url)
+        await ctx.send(embed=embed)
+        @commands.command(name="userinfo")
+        async def userinfo_command(self, ctx, member: Optional[typing.Union[discord.Member, str, int]] = None):
+            """Shows information about a user (prefix version). Accepts mention, member, or user ID."""
+            resolved = None
+            if member is None:
+                resolved = ctx.author
+            elif isinstance(member, discord.Member):
+                resolved = member
+            else:
+                try:
+                    member_id = int(member)
+                    resolved = ctx.guild.get_member(member_id) or await self.bot.fetch_user(member_id)
+                except Exception:
+                    await ctx.send("❌ Could not find a user with that ID.")
+                    return
+            if not resolved:
+                await ctx.send("❌ Could not resolve user.")
+                return
+            embed = discord.Embed(
+                title=f"👤 User Info - {resolved}",
+                color=discord.Color.green(),
+                timestamp=datetime.utcnow(),
+                description=f"Info for {getattr(resolved, 'mention', str(resolved))}"
+            )
+            avatar_url = resolved.avatar.url if hasattr(resolved, 'avatar') and resolved.avatar else None
+            embed.set_thumbnail(url=avatar_url)
+            embed.add_field(name="🆔 ID", value=resolved.id, inline=True)
+            if isinstance(resolved, discord.Member):
+                joined_at = "N/A"
+                if resolved.joined_at:
+                    try:
+                        joined_at = resolved.joined_at.strftime("%Y-%m-%d %H:%M:%S")
+                    except Exception:
+                        joined_at = "N/A"
+                embed.add_field(name="📥 Joined Server", value=joined_at, inline=True)
+                embed.add_field(name="🎭 Roles", value=", ".join([role.mention for role in resolved.roles[1:]]) or "None", inline=False)
+                embed.add_field(name="📆 Account Created", value=resolved.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+            else:
+                # Only show account creation date for non-Member (User)
+                if hasattr(resolved, 'created_at'):
+                    embed.add_field(name="📆 Account Created", value=resolved.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+            embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar.url)
+            await ctx.send(embed=embed)
+
+    @app_commands.command(name="userinfo", description="Shows information about a user")
+    @app_commands.describe(member="The user to get information about")
+    async def userinfo_slash(self, interaction: discord.Interaction, member: Optional[discord.Member] = None):
+        resolved_member = member or (interaction.user if isinstance(interaction.user, discord.Member) else None)
+        if not resolved_member:
+            return await interaction.response.send_message("User not found.", ephemeral=True)
+        embed = discord.Embed(
+            title=f"👤 User Info - {resolved_member}",
+            color=discord.Color.green(),
+            timestamp=datetime.utcnow(),
+            description=f"Info for {resolved_member.mention}"
+        )
+        embed.set_thumbnail(url=resolved_member.avatar.url if resolved_member.avatar else None)
+        embed.add_field(name="🆔 ID", value=resolved_member.id, inline=True)
+        joined_at = "N/A"
+        if getattr(resolved_member, 'joined_at', None) is not None and resolved_member.joined_at:
+            try:
+                joined_at = resolved_member.joined_at.strftime("%Y-%m-%d %H:%M:%S")
+            except Exception:
+                joined_at = "N/A"
+        embed.add_field(name="📥 Joined Server", value=joined_at, inline=True)
+        embed.add_field(name="📆 Account Created", value=resolved_member.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+        embed.add_field(name="🎭 Roles", value=", ".join([role.mention for role in resolved_member.roles[1:]]) or "None", inline=False)
+        embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        @app_commands.command(name="userinfo", description="Shows information about a user")
+        @app_commands.describe(member="The user to get information about (mention, user, or user ID)")
+        async def userinfo_slash(self, interaction: discord.Interaction, member: Optional[discord.User] = None, user_id: Optional[str] = None):
+            resolved = None
+            if member is not None:
+                resolved = member
+            elif user_id is not None:
+                try:
+                    resolved = await self.bot.fetch_user(int(user_id))
+                except Exception:
+                    return await interaction.response.send_message("❌ Could not find a user with that ID.", ephemeral=True)
+            else:
+                resolved = interaction.user
+            if not resolved:
+                return await interaction.response.send_message("❌ Could not resolve user.", ephemeral=True)
+            embed = discord.Embed(
+                title=f"👤 User Info - {resolved}",
+                color=discord.Color.green(),
+                timestamp=datetime.utcnow(),
+                description=f"Info for {getattr(resolved, 'mention', str(resolved))}"
+            )
+            avatar_url = resolved.avatar.url if hasattr(resolved, 'avatar') and resolved.avatar else None
+            embed.set_thumbnail(url=avatar_url)
+            embed.add_field(name="🆔 ID", value=resolved.id, inline=True)
+            if isinstance(resolved, discord.Member):
+                joined_at = "N/A"
+                if resolved.joined_at:
+                    try:
+                        joined_at = resolved.joined_at.strftime("%Y-%m-%d %H:%M:%S")
+                    except Exception:
+                        joined_at = "N/A"
+                embed.add_field(name="📥 Joined Server", value=joined_at, inline=True)
+                embed.add_field(name="📆 Account Created", value=resolved.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+                embed.add_field(name="🎭 Roles", value=", ".join([role.mention for role in resolved.roles[1:]]) or "None", inline=False)
+            else:
+                embed.add_field(name="📆 Account Created", value=resolved.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+            embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # -------------------- AVATAR --------------------
+    @commands.command(name="avatar")
+    async def avatar_command(self, ctx, member: Optional[discord.Member] = None):
+        """Shows a user's avatar (prefix version)"""
         member = member or ctx.author
         embed = discord.Embed(
-            title=f"Avatar - {member}",
-            color=discord.Color.purple()
+            title=f"🖼️ Avatar for {member}",
+            color=discord.Color.orange(),
+            timestamp=datetime.utcnow()
         )
-        embed.set_image(url=member.display_avatar.url if hasattr(member, 'display_avatar') else member.avatar.url if member.avatar else None)
-        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url if hasattr(ctx.author, 'display_avatar') else ctx.author.avatar.url if ctx.author.avatar else None)
+        embed.set_image(url=member.avatar.url if member.avatar else None)
+        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar.url)
         await ctx.send(embed=embed)
+        @commands.command(name="avatar")
+        async def avatar_command(self, ctx, member: Optional[typing.Union[discord.Member, str, int]] = None):
+            """Shows a user's avatar (prefix version). Accepts mention, member, or user ID."""
+            user = None
+            if member is None:
+                user = ctx.author
+            elif isinstance(member, discord.Member):
+                user = member
+            else:
+                try:
+                    member_id = int(member)
+                    user = ctx.guild.get_member(member_id) or await self.bot.fetch_user(member_id)
+                except Exception:
+                    await ctx.send("❌ Could not find a user with that ID.")
+                    return
+            if not user:
+                await ctx.send("❌ Could not resolve user.")
+                return
+            user = await self.bot.fetch_user(user.id)
+            embed = discord.Embed(
+                title=f"🖼️ Avatar for {user}",
+                color=discord.Color.blue(),
+                timestamp=datetime.utcnow()
+            )
+            embed.set_image(url=user.avatar.url if user.avatar else user.display_avatar.url)
+            embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar.url)
+            await ctx.send(embed=embed)
+
+    @app_commands.command(name="avatar", description="Shows a user's avatar")
+    @app_commands.describe(member="The user to get the avatar of")
+    async def avatar_slash(self, interaction: discord.Interaction, member: Optional[discord.Member] = None):
+        resolved_member = member or (interaction.user if isinstance(interaction.user, discord.Member) else None)
+        if not resolved_member:
+            return await interaction.response.send_message("User not found.", ephemeral=True)
+        embed = discord.Embed(
+            title=f"🖼️ Avatar for {resolved_member}",
+            color=discord.Color.orange(),
+            timestamp=datetime.utcnow()
+        )
+        embed.set_image(url=resolved_member.avatar.url if resolved_member.avatar else None)
+        embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        @app_commands.command(name="avatar", description="Shows a user's avatar")
+        @app_commands.describe(member="The user to get the avatar of (mention, user, or user ID)")
+        async def avatar_slash(self, interaction: discord.Interaction, member: Optional[discord.User] = None, user_id: Optional[str] = None):
+            user = None
+            if member is not None:
+                user = member
+            elif user_id is not None:
+                try:
+                    user = await self.bot.fetch_user(int(user_id))
+                except Exception:
+                    await interaction.response.send_message("❌ Could not find a user with that ID.", ephemeral=True)
+                    return
+            else:
+                user = interaction.user
+            if not user:
+                await interaction.response.send_message("❌ Could not resolve user.", ephemeral=True)
+                return
+            user = await self.bot.fetch_user(user.id)
+            embed = discord.Embed(
+                title=f"🖼️ Avatar for {user}",
+                color=discord.Color.blue(),
+                timestamp=datetime.utcnow()
+            )
+            embed.set_image(url=user.avatar.url if user.avatar else user.display_avatar.url)
+            embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # -------------------- BANNER --------------------
+    @commands.command(name="banner")
+    async def banner_command(self, ctx, member: Optional[typing.Union[discord.Member, str, int]] = None):
+        """Shows a user's banner (prefix version). Accepts mention, member, or user ID."""
+        user = None
+        if member is None:
+            user = ctx.author
+        elif isinstance(member, discord.Member):
+            user = member
+        else:
+            # Try to resolve as user ID
+            try:
+                member_id = int(member)
+                user = await self.bot.fetch_user(member_id)
+            except Exception:
+                await ctx.send("❌ Could not find a user with that ID.")
+                return
+        if not user:
+            await ctx.send("❌ Could not resolve user.")
+            return
+        user = await self.bot.fetch_user(user.id)
+        embed = discord.Embed(
+            title=f"🎫 Banner for {user}",
+            color=discord.Color.teal(),
+            timestamp=datetime.utcnow()
+        )
+        if user.banner:
+            embed.set_image(url=user.banner.url)
+        else:
+            embed.description = "No banner found."
+        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar.url)
+        await ctx.send(embed=embed)
+
+    @app_commands.command(name="banner", description="Shows a user's banner")
+    @app_commands.describe(member="The user to get the banner of (mention, user, or user ID)")
+    async def banner_slash(self, interaction: discord.Interaction, member: Optional[discord.User] = None, user_id: Optional[str] = None):
+        user = None
+        if member is not None:
+            user = member
+        elif user_id is not None:
+            try:
+                user = await self.bot.fetch_user(int(user_id))
+            except Exception:
+                await interaction.response.send_message("❌ Could not find a user with that ID.", ephemeral=True)
+                return
+        else:
+            user = interaction.user
+        if not user:
+            await interaction.response.send_message("❌ Could not resolve user.", ephemeral=True)
+            return
+        user = await self.bot.fetch_user(user.id)
+        embed = discord.Embed(
+            title=f"🎫 Banner for {user}",
+            color=discord.Color.teal(),
+            timestamp=datetime.utcnow()
+        )
+        if user.banner:
+            embed.set_image(url=user.banner.url)
+        else:
+            embed.description = "No banner found."
+        embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # -------------------- ABOUT --------------------
+    @commands.command(name="about")
+    async def about_command(self, ctx):
+        """Shows info about the bot (prefix version)"""
+        embed = discord.Embed(
+            title="🤖 About This Bot",
+            color=discord.Color.purple(),
+            timestamp=datetime.utcnow(),
+            description="A multipurpose Discord bot with moderation, utility, and fun features!"
+        )
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url if self.bot.user else None)
+        embed.add_field(name="👤 Creator", value="Your Name", inline=True)
+        embed.add_field(name="📚 Library", value="discord.py", inline=True)
+        embed.add_field(name="🌐 Servers", value=len(self.bot.guilds), inline=True)
+        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar.url)
+        await ctx.send(embed=embed)
+
+    @app_commands.command(name="about", description="Shows info about the bot")
+    async def about_slash(self, interaction: discord.Interaction):
+        embed = discord.Embed(
+            title="🤖 About This Bot",
+            color=discord.Color.purple(),
+            timestamp=datetime.utcnow(),
+            description="A multipurpose Discord bot with moderation, utility, and fun features!"
+        )
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url if self.bot.user else None)
+        embed.add_field(name="👤 Creator", value="Your Name", inline=True)
+        embed.add_field(name="📚 Library", value="discord.py", inline=True)
+        embed.add_field(name="🌐 Servers", value=len(self.bot.guilds), inline=True)
+        embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 async def setup(bot):
     await bot.add_cog(General(bot))

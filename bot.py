@@ -145,3 +145,4 @@ async def main():
         traceback.print_exc()
 
 asyncio.run(main())
+bot.run(BOT_TOKEN)

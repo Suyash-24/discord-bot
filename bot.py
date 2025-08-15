@@ -1,9 +1,26 @@
 
 import discord
 from discord.ext import commands
+
 import os
 import asyncio
 from dotenv import load_dotenv
+
+# Ensure required data files exist
+required_files = [
+    "data/modroles.json",
+    "data/modlogs.json",
+    "data/muteroles.json",
+    "data/active_mutes.json",
+    "data/warnings.json"
+]
+for file in required_files:
+    dir_path = os.path.dirname(file)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path, exist_ok=True)
+    if not os.path.exists(file):
+        with open(file, "w") as f:
+            f.write("{}" if file.endswith(".json") else "")
 
 load_dotenv()
 BOT_TOKEN = os.getenv("TOKEN")
